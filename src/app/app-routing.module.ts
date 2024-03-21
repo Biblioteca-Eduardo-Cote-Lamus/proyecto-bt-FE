@@ -2,6 +2,7 @@ import { RouterModule } from '@angular/router';
 import { NgModule } from '@angular/core';
 import { NotfoundComponent } from './demo/components/notfound/notfound.component';
 import { AppLayoutComponent } from "./layout/app.layout.component";
+import { authGuard } from './auth/guards/Auth.guard';
 
 @NgModule({
     imports: [
@@ -10,7 +11,8 @@ import { AppLayoutComponent } from "./layout/app.layout.component";
                 path: 'backoffice', component: AppLayoutComponent,
                 children: [
                     
-                ]
+                ],
+                canActivate: [authGuard]
             },
             { path: '', loadChildren: () => import('./auth/auth-routing').then(m => m.AUTH_ROUTES)},
             { path: 'notfound', component: NotfoundComponent },

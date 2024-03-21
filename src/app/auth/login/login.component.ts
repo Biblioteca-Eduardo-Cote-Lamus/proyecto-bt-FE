@@ -44,20 +44,27 @@ export class LoginComponent {
         private router: Router
     ) {}
 
+    ngOnInit(): void {
+        if (this.loginServie.isLoggedIn()) {
+            this.router.navigate(['/backoffice'], {replaceUrl: true});
+        }
+    }
+
     public doLogin() {
         if (this.form.invalid) {
             this.form.markAllAsTouched();
             this.form.markAsDirty();
             return;
-        };
+        }
+    
         this.loginServie.login({
             email: this.form.get('email').value,
             password: this.form.get('password').value,
-        
         }).subscribe({
-            next: (response:any) => {
+            next: (response) => {
                 localStorage.setItem('token', JSON.stringify(response.data.token));
-                this.router.navigate(['/backoffice']);
+                localStorage.setItem('user', JSON.stringify(response.data.user));
+                this.router.navigate(['/backoffice'], {replaceUrl: true});
             },
             error: (error) => {console.error(error)}
         })

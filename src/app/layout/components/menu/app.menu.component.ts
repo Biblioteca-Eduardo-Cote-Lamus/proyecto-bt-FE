@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { LayoutService } from '../../service/app.layout.service';
 import { AppMenuitemComponent } from '../../app.menuitem.component';
 import { NgFor, NgIf } from '@angular/common';
+import { ShowForRolDirective } from './directives/showForRol.directive';
 
 // Interface example 
 /*
@@ -19,7 +20,7 @@ import { NgFor, NgIf } from '@angular/common';
     selector: 'app-menu',
     templateUrl: './app.menu.component.html',
     standalone: true,
-    imports: [NgFor, NgIf, AppMenuitemComponent]
+    imports: [NgFor, NgIf, AppMenuitemComponent, ShowForRolDirective]
 })
 export class AppMenuComponent implements OnInit {
 
@@ -30,37 +31,84 @@ export class AppMenuComponent implements OnInit {
     ngOnInit() {
         this.model = [
             {
-                label: 'Home',
+                label: 'Inicio',
                 items: [
                     { label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/'] }
-                ]
+                ],
+                rol: ['Administrador']
             },
             {
-                label: 'Pages',
+                label: 'Becastrabajo',
                 icon: 'pi pi-fw pi-briefcase',
                 items: [
                     {
-                        label: 'Auth',
-                        icon: 'pi pi-fw pi-user',
+                        label: 'Becas',
+                        icon: 'pi pi-fw pi-users',
                         items: [
                             {
-                                label: 'Login',
-                                icon: 'pi pi-fw pi-sign-in',
+                                label: 'Seleccion',
+                                icon: 'pi pi-fw pi-plus',
                                 routerLink: ['/auth/login']
                             },
                             {
-                                label: 'Error',
-                                icon: 'pi pi-fw pi-times-circle',
+                                label: 'Horario',
+                                icon: 'pi pi-fw pi-calendar',
                                 routerLink: ['/auth/error']
                             },
                             {
-                                label: 'Access Denied',
-                                icon: 'pi pi-fw pi-lock',
+                                label: 'Listado',
+                                icon: 'pi pi-fw pi-bookmark',
                                 routerLink: ['/auth/access']
+                            },
+                            {
+                                label: 'Documentos',
+                                icon: 'pi pi-fw pi-file',
+                                routerLink: ['/auth/notfound']
                             }
                         ]
                     }
-                ]
+                ],
+                rol: ['Administrador']
+            },
+            {
+                label: 'Biblioteca',
+                items: [
+                    {
+                        label: 'Ubicaciones',
+                        icon: 'pi pi-fw pi-map-marker',
+                        items: [
+                            {
+                                label: 'Listado',
+                                icon: 'pi pi-fw pi-list',
+                            },
+                            {
+                                label: 'Encargados',
+                                icon: 'pi pi-fw pi-users'
+                            }
+                        ]
+                    }
+                ],
+                rol: ['Administrador']
+            },
+            // ========================================= Items to Becastrabajo rol =========================================
+            {
+                label: 'Inicio',
+                items: [
+                    { label: 'Horario', icon: 'pi pi-fw pi-clock', routerLink: ['/'] },
+                    { label: 'Asistencia', icon: 'pi pi-fw pi-home', routerLink: ['/'] },
+                    { label: 'Historial', icon: 'pi pi-fw pi-book', routerLink: ['/'] }
+                ],
+                rol: ['Beca']
+            },
+            // ========================================= Items to Encargado rol =========================================
+            { 
+                label: 'Inicio',
+                items: [
+                    { label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/'] },
+                    { label: 'Becas', icon: 'pi pi-fw pi-briefcase', routerLink: ['/'] },
+                    { label: 'Biblioteca', icon: 'pi pi-fw pi-book', routerLink: ['/'] }
+                ],
+                rol: ['Encargado']
             }
         ];
     }

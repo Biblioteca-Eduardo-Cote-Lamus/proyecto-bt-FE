@@ -5,8 +5,8 @@
     <div class="flex flex-column bg-red w-full h-full md:flex-row">
         <!-- all form container -->
         <div class="w-full h-full">
-            <div class="w-full surface-card px-4 h-full sm:px-8" style="padding: 128px 16px 64px ;" >
-                <form [formGroup]="form" (ngSubmit)="doLogin()">
+            <div class="w-full surface-card px-4 h-full sm:px-8 flex align-items-center" style="padding: 128px 16px 64px ;" >
+                <form [formGroup]="form" (ngSubmit)="doLogin()" class="w-full" >
                     <!-- header form text -->
                     <div class="text-center mb-5">
                         <span class="font-bold text-6xl">Ingrese a su cuenta</span>
