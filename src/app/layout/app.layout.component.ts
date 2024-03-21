@@ -1,13 +1,17 @@
 import { Component, OnDestroy, Renderer2, ViewChild } from '@angular/core';
-import { NavigationEnd, Router } from '@angular/router';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
 import { LayoutService } from "./service/app.layout.service";
 import { AppSidebarComponent } from "./components/sidebar/app.sidebar.component";
 import { AppTopBarComponent } from './components/topbar/app.topbar.component';
+import { AppFooterComponent } from './components/footer/app.footer.component';
+import { NgClass } from '@angular/common';
 
 @Component({
     selector: 'app-layout',
-    templateUrl: './app.layout.component.html'
+    templateUrl: './app.layout.component.html',
+    standalone: true,
+    imports: [NgClass, AppTopBarComponent, AppSidebarComponent, RouterOutlet, AppFooterComponent, ]
 })
 export class AppLayoutComponent implements OnDestroy {
 

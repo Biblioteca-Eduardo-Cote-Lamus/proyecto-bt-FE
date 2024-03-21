@@ -1,0 +1,65 @@
+<div class="absolute p-4" >
+    <img  src="assets/auth/logo-BECL.png" alt="logo de la biblioteca eduardo cote lamus" class="w-10rem">
+</div>
+<div class=" bg-blue-600 h-screen w-full ">
+    <div class="flex flex-column bg-red w-full h-full md:flex-row">
+        <!-- all form container -->
+        <div class="w-full h-full">
+            <div class="w-full surface-card px-4 h-full sm:px-8" style="padding: 128px 16px 64px ;" >
+                <form [formGroup]="form" (ngSubmit)="doLogin()">
+                    <!-- header form text -->
+                    <div class="text-center mb-5">
+                        <span class="font-bold text-6xl">Ingrese a su cuenta</span>
+                    </div>
+                    <!-- form container -->
+                    <div>
+                        <div class="mb-5">
+                            <!-- email input -->
+                            <label for="email1" class="block text-900 text-xl font-medium mb-2">Correo</label>
+                            <input  id="email1" 
+                                    type="email" 
+                                    placeholder="ejemplo@ufps.edu.co" 
+                                    pInputText class="w-full " style="padding:1rem" 
+                                    formControlName="email"
+                                    [ngClass]="{'ng-invalid ng-dirty mb-2': validateInput('email')}"
+                            />
+                            @if (validateInput('email')) {
+                                <span class="text-red-500">Este campo es requerido</span>
+                            }
+                        </div>
+                        <!-- password input -->
+                        <div class=" mb-5"> 
+                            <label for="password1" class="block text-900 font-medium text-xl mb-2">Contraseña</label>
+                            <p-password  id="password1"  
+                                        placeholder="**************"  
+                                        [feedback]="false" 
+                                        [toggleMask]="true" 
+                                        styleClass="w-full" 
+                                        inputStyleClass="w-full" 
+                                        formControlName="password"
+                                        [ngClass]="{'ng-invalid ng-dirty': validateInput('password')}"
+                            >
+                            </p-password>
+                            @if (validateInput('password')) {
+                                <span class="text-red-500 inline-block mt-2">Este campo es requerido</span>
+                            }
+                        </div>
+                        <!-- others inputs -->
+                        <div>
+                            <div class="flex align-items-center justify-content-between mb-5 gap-5">
+                                <a class="font-medium no-underline ml-2 text-right cursor-pointer ml-auto text-yellow-600 transition-colors transition-duration-200 hover:text-yellow-400 hover:underline">Recuperar contraseña</a>
+                            </div>
+                            <p-button type="submit" label="Iniciar sesión" severity="danger" styleClass="w-full transition-colors transition-duration-200" [raised]="true"> </p-button>
+                        </div>
+                    </div>
+                </form>
+                
+            </div>
+        </div>
+        <!-- text container -->
+        <div class="bg-red-700 p-6 gap-1 text-center text-white w-full h-full flex flex-column align-items-center justify-content-center md:w-5">
+            <h1 class="text-white"> ¡Bienvenido!</h1>
+            <p class="text-xl">Para mantener conectado con nosotros, por favor inicie sesión con su información personal</p>
+        </div>
+    </div>
+</div>

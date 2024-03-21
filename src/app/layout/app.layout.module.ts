@@ -14,19 +14,10 @@ import { AppMenuitemComponent } from './app.menuitem.component';
 import { RouterModule } from '@angular/router';
 import { AppTopBarComponent } from './components/topbar/app.topbar.component';
 import { AppFooterComponent } from './components/footer/app.footer.component';
-import { AppConfigModule } from './config/config.module';
 import { AppSidebarComponent } from "./components/sidebar/app.sidebar.component";
 import { AppLayoutComponent } from "./app.layout.component";
 
 @NgModule({
-    declarations: [
-        AppMenuitemComponent,
-        AppTopBarComponent,
-        AppFooterComponent,
-        AppMenuComponent,
-        AppSidebarComponent,
-        AppLayoutComponent,
-    ],
     imports: [
         BrowserModule,
         FormsModule,
@@ -39,7 +30,12 @@ import { AppLayoutComponent } from "./app.layout.component";
         InputSwitchModule,
         RippleModule,
         RouterModule,
-        AppConfigModule
+        AppMenuitemComponent,
+        AppTopBarComponent,
+        AppFooterComponent,
+        AppMenuComponent,
+        AppSidebarComponent,
+        AppLayoutComponent
     ],
     exports: [AppLayoutComponent]
 })
