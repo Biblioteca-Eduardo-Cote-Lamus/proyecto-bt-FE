@@ -1,0 +1,96 @@
+:host {
+    display: block;
+}
+
+.drop-hero__landing {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.drop-hero__media {
+  align-items: flex-start;
+  box-sizing: border-box;
+  display: flex;
+  min-height: 18.75rem;
+  padding-top: 1em;
+  position: relative;
+  z-index: 1;
+}
+
+.dropzone-container{
+  display: inline-block;
+  position: relative;
+  z-index: 1;
+}
+
+.dropzone::before {
+  animation: spin 80s linear infinite;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27%3E%3Crect width=%27100%25%27 height=%27100%25%27 fill=%27none%27 stroke=%27%2300C7B6FF%27 stroke-dasharray=%27.15%25,5%25%27 stroke-linecap=%27square%27 stroke-width=%278%27 rx=%27200%27 ry=%27200%27/%3E%3C/svg%3E");
+  background-position: 50%;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  border-radius: 50%;
+  content: "";
+  height: 110%;
+  left: -5%;
+  position: absolute;
+  top: -5%;
+  width: 110%;
+  z-index: -1;
+}
+
+.dropzone~.drop-ring {
+  aspect-ratio: 1;
+  display: block;
+  height: 200%;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 200%;
+  z-index: -2;
+}
+
+.dropzone~.drop-ring:first-of-type {
+  height: 150%;
+  width: 150%;
+  /* height: 180%;
+  width: 180%; */
+}
+
+.dropzone~.drop-ring:nth-of-type(2) {
+    /* height: 300%;
+    width: 300%; */
+    height: 250%;
+    width: 250%;
+  }
+
+.dropzone~.drop-ring:nth-of-type(3) {
+  height: 300%;
+  width: 300%;
+  /* height: 450%;
+  width: 450%; */
+}
+
+.dropzone~.drop-ring:before {
+  background-color: #054861;
+  border-radius: 50%;
+  content: "";
+  display: block;
+  height: 100%;
+  opacity: .2;
+  position: absolute;
+  transition: transform .5s ease-out, opacity .5s ease-out;
+  width: 100%;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

@@ -10,7 +10,10 @@ import { authGuard } from './auth/guards/Auth.guard';
             {
                 path: 'backoffice', component: AppLayoutComponent,
                 children: [
-                    
+                    {
+                        path: 'becas',
+                        loadChildren: () => import('./becas/becas-routing').then(m => m.BECAS_ROUTES)
+                    }
                 ],
                 canActivate: [authGuard]
             },

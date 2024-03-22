@@ -48,7 +48,7 @@ export class AppMenuComponent implements OnInit {
                             {
                                 label: 'Seleccion',
                                 icon: 'pi pi-fw pi-plus',
-                                routerLink: ['/auth/login']
+                                routerLink: ['/backoffice/becas/seleccion']
                             },
                             {
                                 label: 'Horario',
