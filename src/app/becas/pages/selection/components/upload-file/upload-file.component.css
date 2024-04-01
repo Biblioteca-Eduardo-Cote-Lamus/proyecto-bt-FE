@@ -3,6 +3,17 @@
     color: #fff;
 }
 
+.img-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+    padding: 8px;
+    border-radius: 50%;
+    width: 42px;
+    height: 42px;
+  }
+
 .btn {
     background-color: transparent ;
     border: 1px solid transparent;

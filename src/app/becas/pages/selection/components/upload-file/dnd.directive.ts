@@ -3,8 +3,14 @@ import {
     EventEmitter,
     HostBinding,
     HostListener,
+    Input,
     Output,
 } from '@angular/core';
+
+export interface FileDropped {
+    file?: File | File[] | null | undefined;
+    valid: boolean;
+}
 
 @Directive({
     selector: '[DnD]',
@@ -12,10 +18,14 @@ import {
 })
 export class DragDropDirective {
     @HostBinding('class.fileover') fileOver: boolean;
-    @Output() fileDropped = new EventEmitter<any>();
+    @Input() isDraggable: boolean = true;
+    @Output() fileDropped = new EventEmitter<FileDropped>();
 
     // Dragover listener
     @HostListener('dragover', ['$event']) onDragOver(evt) {
+        if (this.isDraggable) {
+            return;
+        }
         evt.preventDefault();
         evt.stopPropagation();
         this.fileOver = true;
@@ -23,6 +33,9 @@ export class DragDropDirective {
 
     // Dragleave listener
     @HostListener('dragleave', ['$event']) public onDragLeave(evt) {
+        if (this.isDraggable) {
+            return;
+        }
         evt.preventDefault();
         evt.stopPropagation();
         this.fileOver = false;
@@ -30,6 +43,9 @@ export class DragDropDirective {
 
     // Drop listener
     @HostListener('drop', ['$event']) public ondrop(evt) {
+        if (this.isDraggable) {
+            return;
+        }
         evt.preventDefault();
         evt.stopPropagation();
         this.fileOver = false;
@@ -42,14 +58,14 @@ export class DragDropDirective {
             const invalidFiles = [];
             for (let i = 0; i < files.length; i++) {
                 if (allowedTypes.indexOf(files[i].type) === -1) {
-                    invalidFiles.push(files[i]);
+                    this.fileDropped.emit({ valid: false });
+                    return;
                 }
             }
-            if (invalidFiles.length === 0) {
-                this.fileDropped.emit(files);
-            } else {
-                this.fileDropped.emit(false);
-            }
+            this.fileDropped.emit({
+                file: files.length > 1 ? files : files[0],
+                valid: true,
+            })
         }
     }
 }
