@@ -1,0 +1,32 @@
+.img-bg{
+    background-color: #0066FF;
+    color: #fff;
+}
+
+.btn {
+    background-color: transparent ;
+    border: 1px solid transparent;
+    transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+}
+
+.dashed-border{
+    background: 
+        linear-gradient(90deg, #f2818e 50%, transparent 0) repeat-x,
+        linear-gradient(90deg, #f2818e 50%, transparent 0) repeat-x,
+        linear-gradient(0deg, #f2818e 50%, transparent 0) repeat-y,
+        linear-gradient(0deg, #f2818e 50%, transparent 0) repeat-y;
+    background-size: 4px 1px, 4px 1px, 1px 4px, 1px 4px;
+    background-position: 0 0, 0 100%, 0 0, 100% 0;
+    animation: linearGradientMove .3s infinite linear;
+}
+
+.fileover{
+    background-color: #F8FBFF;
+}
+  
+
+@keyframes linearGradientMove {
+    100% {
+        background-position: 4px 0, -4px 100%, 0 -4px, 100% 4px;
+    }
+} 

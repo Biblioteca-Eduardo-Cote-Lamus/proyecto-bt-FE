@@ -4,6 +4,7 @@ import { SelectionComponent } from "./pages/selection/selection.component"
 export const BECAS_ROUTES: Routes = [
     {
         path: 'seleccion',
-        component: SelectionComponent
+        component: SelectionComponent,
+        loadChildren: () => import('./pages/selection/selection-routing').then(s => s.SELECTION_ROUTES)
     }
 ]

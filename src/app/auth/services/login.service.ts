@@ -18,7 +18,7 @@ export class LoginService {
   ) { 
     const token = localStorage.getItem('token');
     if (token) {
-      this.user.next(JSON.parse(localStorage.getItem('user') || '{}'));
+      this.user.next(JSON.parse(localStorage.getItem('user') || 'null'));
     }
   }
 
