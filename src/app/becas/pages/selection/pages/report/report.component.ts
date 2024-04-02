@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { map } from 'rxjs';
 
 import { AccordionModule } from 'primeng/accordion';
 import { ButtonModule } from 'primeng/button';
@@ -9,9 +11,9 @@ import { MessageService } from 'primeng/api';
 
 import { UploadFileComponent } from '../../components/upload-file/upload-file.component';
 import { FileDropped } from '../../components/upload-file/dnd.directive';
-import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
-import { map } from 'rxjs';
+import { CalendarModule } from 'primeng/calendar';
+
 
 
 @Component({
@@ -23,6 +25,7 @@ import { map } from 'rxjs';
         ButtonModule,
         TableModule,
         ToastModule,
+        CalendarModule,
         UploadFileComponent
     ], 
     providers: [MessageService],
@@ -45,6 +48,7 @@ import { map } from 'rxjs';
                                 severity="success"
                                 icon="pi pi-check"
                                 iconPos="right"
+                                (onClick)="confirmReport()"
                             >
                             </p-button>
                             <p-button
@@ -81,7 +85,24 @@ import { map } from 'rxjs';
                         </ng-template>
                     </p-table>
                     
-                </p-accordionTab>
+            </p-accordionTab>
+
+            <p-accordionTab header="Fecha limite" [headerStyleClass]="'text-red-500'" [disabled]="activeIndex !== 2">
+                <p class="mb-4">Seleccione la fecha limite de subida de información para los inscritos</p>
+                <div class="flex justify-content-center">
+                    <p-calendar class="max-w-full"  [inline]="true"  [minDate]="getMinDate()"></p-calendar>                        
+                </div>
+                <div class="flex justify-content-end">
+                    <p-button
+                        label="Confirmar y enviar"
+                        [outlined]="true"
+                        severity="success"
+                        icon="pi pi-check"
+                        iconPos="right"
+                    >
+                    </p-button>
+                </div>
+            </p-accordionTab>
             </p-accordion> 
             <p-toast ></p-toast>
         </section>
@@ -104,14 +125,25 @@ export class ReportComponent {
     
     ngOnInit(): void {
 
-        if (localStorage.getItem('candidates')) {
-            this.reponseBack.set( JSON.parse(localStorage.getItem('candidates') || '[]'));
-            this.activeIndex = 1;
+        if (localStorage.getItem('upload-report')) {
+            const {report, activeIndex} = JSON.parse(localStorage.getItem('upload-report') || '{}')
+            this.reponseBack.set(report);
+            this.activeIndex = activeIndex;
         }
-
     }
 
-
+    getMinDate() {
+        const currentDay = new Date()
+        currentDay.setDate(currentDay.getDate() +1)
+        return currentDay
+    }
+    
+    confirmReport(){
+        this.activeIndex +=1;
+        const reportData = JSON.parse(localStorage.getItem('upload-report'))
+        reportData.activeIndex = this.activeIndex
+        localStorage.setItem('upload-report', JSON.stringify(reportData))
+    }
 
     takeReport(event: FileDropped) {
         const formData = new FormData();
@@ -140,10 +172,10 @@ export class ReportComponent {
                 next: (response) => {
                     this.reponseBack.set(response);
                     localStorage.setItem(
-                        'candidates',
-                        JSON.stringify(response)
+                        'upload-report',
+                        JSON.stringify({report: response, activeIndex: this.activeIndex+1})
                     );
-                    this.activeIndex ++;
+                    this.activeIndex += 1;
                     this.messageService.clear();
                     this.messageService.add({ severity: 'success', summary: 'Lista generada', detail: 'Se ha generado la lista de postulantes exitosamente.' });
                 },
