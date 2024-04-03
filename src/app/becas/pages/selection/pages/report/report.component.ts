@@ -102,6 +102,7 @@ import { FormsModule } from '@angular/forms';
                         severity="success"
                         icon="pi pi-check"
                         iconPos="right"
+                        (onClick)="confirmAllData()"
                     >
                     </p-button>
                 </div>
@@ -177,5 +178,15 @@ export class ReportComponent {
         localStorage.removeItem('candidates');
         this.activeIndex = 0;
         this.reponseBack.set([]);
+    }
+
+    confirmAllData() {
+        const data = {
+            applicants: this.reponseBack().slice(0,3),
+            limit: this.minDateSelected.toISOString()
+        }
+        this.uploadReportService.confirmReport(data).subscribe({
+            next: (res) => console.log(res),
+        })
     }
  }

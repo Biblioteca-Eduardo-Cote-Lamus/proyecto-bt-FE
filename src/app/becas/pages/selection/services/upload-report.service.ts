@@ -15,4 +15,8 @@ export class UploadReportService {
             .post(`${environment.apiUrlBase}/selection/upload`, formData)
             .pipe(map((response: any) => mappedReportResponse(response)));
     }
+
+    confirmReport(data: any) {
+        return this.http.post(`${environment.apiUrlBase}/selection/confirm-list`, {data});
+    }
 }
