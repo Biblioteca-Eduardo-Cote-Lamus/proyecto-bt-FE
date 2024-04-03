@@ -1,18 +1,16 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map } from 'rxjs';
-
 import { AccordionModule } from 'primeng/accordion';
 import { ButtonModule } from 'primeng/button';
 import {  TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
-
 import { UploadFileComponent } from '../../components/upload-file/upload-file.component';
 import { FileDropped } from '../../components/upload-file/dnd.directive';
-import { environment } from 'src/environments/environment';
 import { CalendarModule } from 'primeng/calendar';
+import { UploadReportService } from '../../services/upload-report.service';
+import { FormsModule } from '@angular/forms';
 
 
 
@@ -26,6 +24,7 @@ import { CalendarModule } from 'primeng/calendar';
         TableModule,
         ToastModule,
         CalendarModule,
+        FormsModule,
         UploadFileComponent
     ], 
     providers: [MessageService],
@@ -89,8 +88,12 @@ import { CalendarModule } from 'primeng/calendar';
 
             <p-accordionTab header="Fecha limite" [headerStyleClass]="'text-red-500'" [disabled]="activeIndex !== 2">
                 <p class="mb-4">Seleccione la fecha limite de subida de información para los inscritos</p>
-                <div class="flex justify-content-center">
-                    <p-calendar class="max-w-full"  [inline]="true"  [minDate]="getMinDate()"></p-calendar>                        
+                <div class="flex justify-content-center gap-6">
+                    <p-calendar class="max-w-full" [(ngModel)]="minDateSelected"  [inline]="true"  [minDate]="getMinDate()"></p-calendar>  
+                    <div>
+                        <p>El formulario aceptara respuesta hasta: </p>
+                        <p>Fecha: <strong>{{minDateSelected | date: 'dd/MM/yyyy'}}</strong> a las <strong>23:59:59</strong></p>
+                    </div>                      
                 </div>
                 <div class="flex justify-content-end">
                     <p-button
@@ -116,10 +119,12 @@ export class ReportComponent {
 
     activeIndex = 0;
     reponseBack = signal<any>([]);
+    minDateSelected = new Date();
 
     constructor(
         private http: HttpClient, 
-        private messageService: MessageService
+        private messageService: MessageService,
+        private uploadReportService: UploadReportService
     ) {}
 
     
@@ -130,6 +135,7 @@ export class ReportComponent {
             this.reponseBack.set(report);
             this.activeIndex = activeIndex;
         }
+        this.minDateSelected = this.getMinDate()
     }
 
     getMinDate() {
@@ -148,26 +154,7 @@ export class ReportComponent {
     takeReport(event: FileDropped) {
         const formData = new FormData();
         formData.append('file', event.file as File);
-        this.http
-            .post(`${environment.apiUrlBase}/selection/upload`, formData)
-            .pipe(
-                map((response: any) => {
-                    const { data } = response;
-                    const candidates = [];
-                    for (const candidate of data) {
-                        candidates.push({
-                            codigo: candidate.CODIGO,
-                            documento: candidate.DOCUMENTO,
-                            nombre: candidate.APELLIDOS_Y_NOMBRES,
-                            promedio: candidate.PROMEDIO,
-                            correo: candidate.EMAIL_UFPS,
-                            telefono: candidate.CELULAR,
-                        });
-                    }
-
-                    return candidates;
-                })
-            )
+        this.uploadReportService.getReportData(formData)
             .subscribe({
                 next: (response) => {
                     this.reponseBack.set(response);
