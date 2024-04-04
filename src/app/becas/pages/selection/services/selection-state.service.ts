@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, map } from 'rxjs';
+import { ApplicantListResponse } from '../api';
+import { mappedApplicantListResponse } from '../util/mappedApplicantListResponse';
 
 @Injectable({
   providedIn: 'root'
@@ -22,6 +24,12 @@ export class SelectionStateService {
     this.getCurrentStateSelection().subscribe(({currentState}: any) => {      
       this.currentSelectionState.next(currentState);
     });
+  }
+
+  getSelectionApplicants(){
+    return this.http.get(`${environment.apiUrlBase}/selection/applicant-list`).pipe(
+      map((response: any) => mappedApplicantListResponse(response.data))
+    )
   }
 
   private getCurrentStateSelection() {

@@ -58,14 +58,6 @@ export class SelectionComponent {
             },
         ]);
 
-        // this.getCurrentStep().subscribe(({currentState}: any) => {
-        //     const {id} = currentState;
-        //     this.currentStep.set( id -1 );
-            
-        //     this.router.navigate([`/backoffice/becas/seleccion/${this.items()[this.currentStep()].routerLink}`]);
-
-        // });
-
         this.currentSelectionStateSubscription$ = this.currentStateService.currentSelectionState$.subscribe({
             next: (currentState) => { 
                 if (currentState === null) 
