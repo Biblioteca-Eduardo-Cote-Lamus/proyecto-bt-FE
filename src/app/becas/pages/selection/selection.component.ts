@@ -15,7 +15,7 @@ import { environment } from 'src/environments/environment';
             <h1 class="text-2xl">Proceso de Selección</h1>
             <!-- stepper -->
             <div class="card">
-                <p-steps [model]="items()" [readonly]="false" [activeIndex]="currentStep()"></p-steps>
+                <p-steps [model]="items()" [readonly]="true" [activeIndex]="currentStep()"></p-steps>
             </div>
             <router-outlet></router-outlet>
         </section>
@@ -35,6 +35,10 @@ export class SelectionComponent {
         this.items.set([
             {
                 label: 'Cargar informe',
+                routerLink: 'carge-informe',
+            },
+            {
+                label: 'Envio informe',
                 routerLink: 'carge-informe',
             },
             {

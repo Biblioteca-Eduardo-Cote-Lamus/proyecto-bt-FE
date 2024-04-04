@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { AccordionModule } from 'primeng/accordion';
 import { ButtonModule } from 'primeng/button';
 import {  TableModule } from 'primeng/table';
@@ -12,7 +11,8 @@ import { CalendarModule } from 'primeng/calendar';
 import { UploadReportService } from '../../services/upload-report.service';
 import { FormsModule } from '@angular/forms';
 
-
+// TODO: Implementar que en cualquiera caso, si se cambia el estado actual del proceso de seleccion desde el frontend y no corresponde con el backend,
+// se debe de mostrar un componente que el estado ese esta cerrado y no se puede modificar.
 
 @Component({
     selector: 'app-report',
@@ -95,7 +95,7 @@ import { FormsModule } from '@angular/forms';
                         <p>Fecha: <strong>{{minDateSelected | date: 'dd/MM/yyyy'}}</strong> a las <strong>23:59:59</strong></p>
                     </div>                      
                 </div>
-                <div class="flex justify-content-end">
+                <div class="flex flex-row-reverse justify-content-start gap-3">
                     <p-button
                         label="Confirmar y enviar"
                         [outlined]="true"
@@ -103,6 +103,15 @@ import { FormsModule } from '@angular/forms';
                         icon="pi pi-check"
                         iconPos="right"
                         (onClick)="confirmAllData()"
+                    >
+                    </p-button>
+                    <p-button
+                        label="Cargar otro documento"
+                        [outlined]="true"
+                        severity="warning"
+                        icon="pi pi-trash"
+                        iconPos="right"
+                        (onClick)="reSendFile()"
                     >
                     </p-button>
                 </div>
@@ -123,7 +132,6 @@ export class ReportComponent {
     minDateSelected = new Date();
 
     constructor(
-        private http: HttpClient, 
         private messageService: MessageService,
         private uploadReportService: UploadReportService
     ) {}
@@ -182,11 +190,12 @@ export class ReportComponent {
 
     confirmAllData() {
         const data = {
-            applicants: this.reponseBack().slice(0,3),
+            applicants: this.reponseBack(),
             limit: this.minDateSelected.toISOString()
         }
         this.uploadReportService.confirmReport(data).subscribe({
             next: (res) => console.log(res),
+            error: (err) => console.error(err)
         })
     }
  }
