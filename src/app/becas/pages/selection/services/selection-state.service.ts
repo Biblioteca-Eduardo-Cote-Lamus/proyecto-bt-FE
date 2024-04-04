@@ -1,0 +1,31 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { environment } from 'src/environments/environment';
+import { BehaviorSubject } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class SelectionStateService {
+
+  private currentSelectionState: BehaviorSubject<any> = new BehaviorSubject<any>(null);
+
+  constructor(private http: HttpClient) {
+    this.nextCurrentSelectionState();
+  }
+
+  get currentSelectionState$() {
+    return this.currentSelectionState.asObservable();
+  }
+
+  nextCurrentSelectionState() {
+    this.getCurrentStateSelection().subscribe(({currentState}: any) => {      
+      this.currentSelectionState.next(currentState);
+    });
+  }
+
+  private getCurrentStateSelection() {
+    return this.http.get(`${environment.apiUrlBase}/selection/current-selection-state`)
+}
+
+}
