@@ -13,6 +13,10 @@ import { authGuard } from './auth/guards/Auth.guard';
                     {
                         path: 'becas',
                         loadChildren: () => import('./becas/becas-routing').then(m => m.BECAS_ROUTES)
+                    },
+                    {
+                        path: 'becas-trabajo', 
+                        loadChildren: () => import('./becas-trabajo/becas-trabajo.routing').then(m => m.BECAS_TRABAJO_ROUTES)
                     }
                 ],
                 canActivate: [authGuard]

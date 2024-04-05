@@ -32,6 +32,10 @@ export class SelectionStateService {
     )
   }
 
+  getRegisterFormState() {
+    return this.http.get(`${environment.apiUrlBase}/selection/register-form-state`)
+  }
+
   private getCurrentStateSelection() {
     return this.http.get(`${environment.apiUrlBase}/selection/current-selection-state`)
 }
