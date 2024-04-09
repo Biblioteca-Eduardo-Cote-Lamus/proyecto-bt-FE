@@ -4,6 +4,7 @@ import {
     ChangeDetectorRef,
     Component,
     ElementRef,
+    signal,
     ViewChild,
 } from '@angular/core';
 import { StepperModule } from 'primeng/stepper';
@@ -15,6 +16,7 @@ import { LoginService } from 'src/app/auth/services/login.service';
 import { programsAcademic } from './const/programs-academic.const';
 import { ButtonModule } from 'primeng/button';
 import { CalendarModule } from 'primeng/calendar';
+import { RegisterFormService } from './services/register-form.service';
 
 @Component({
     selector: 'app-register-form',
@@ -227,20 +229,24 @@ import { CalendarModule } from 'primeng/calendar';
                                     class="border-2 border-dashed border-round surface-ground  flex justify-content-center align-items-center font-medium  h-13rem"
                                     [ngClass]="{
                                         'border-green-400 flex-column gap-4':
-                                            registerForm.get('schedule').value
+                                        scheduleFileControls().ok
                                     }"
                                 >
-                                    @if(!registerForm.get('schedule').value) {
+                                    <!-- @if(!registerForm.get('schedule').value) { -->
+                                    @if (!scheduleFileControls().loading && !scheduleFileControls().ok) {
                                     <input
                                         type="file"
                                         class="hidden"
                                         accept="application/pdf"
-                                        formControlName="schedule"
-                                        (change)="
+                                        
+                                        (input)="
                                             onSelectFile($event, 'schedule')
                                         "
                                         #schedule
                                     />
+
+                                    } @else if (scheduleFileControls().loading) {
+                                        <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
                                     } @else {
                                     <div
                                         class="w-full flex flex-column gap-2 justify-content-center align-items-center"
@@ -255,14 +261,16 @@ import { CalendarModule } from 'primeng/calendar';
                                         >
                                     </div>
                                     }
-                                    <p-button
-                                        label="Seleccionar"
-                                        (onClick)="openFileBrowser('schedule')"
-                                        type="button"
-                                    ></p-button>
+                                    @if ((!scheduleFileControls().loading && !scheduleFileControls().ok) || scheduleFileControls().ok) {
+                                        <p-button
+                                            label="Seleccionar"
+                                            (onClick)="openFileBrowser('schedule')"
+                                            type="button"
+                                        ></p-button>
+                                    }
                                 </div>
-                                @if(errorByControl('schedule')){ @for (error of
-                                errorsByControl('schedule'); track error) {
+                                 @if(errorByControl('schedule')){ @for (error
+                                of errorsByControl('schedule'); track error) {
                                 <p class="text-red-500 text-sm">
                                     {{ error }}
                                 </p>
@@ -325,7 +333,13 @@ import { CalendarModule } from 'primeng/calendar';
                         </div>
                     </div>
                     <div class="mt-6 flex justify-content-end">
-                        <p-button label="Enviar" icon="pi pi-send" iconPos="right" type="submit" [disabled]="registerForm.invalid"></p-button>
+                        <p-button
+                            label="Enviar"
+                            icon="pi pi-send"
+                            iconPos="right"
+                            type="submit"
+                            [disabled]="registerForm.invalid"
+                        ></p-button>
                     </div>
                 </form>
             </div>
@@ -355,6 +369,7 @@ export class RegisterFormComponent {
 
     activateViewCode!: number;
     academicPrograms = programsAcademic;
+    scheduleFileControls = signal({file:null, loading: false, ok: false})
 
     registerForm = this.fb.group({
         firstName: [
@@ -368,7 +383,11 @@ export class RegisterFormComponent {
         birthday: ['', [Validators.required]],
         address: [
             '',
-            [Validators.required, Validators.pattern(/^[a-zA-Z0-9#\- ]+$/), Validators.minLength(10)],
+            [
+                Validators.required,
+                Validators.pattern(/^[a-zA-Z0-9#\- ]+$/),
+                Validators.minLength(10),
+            ],
         ],
         academic: ['', [Validators.required]],
         gender: ['', [Validators.required]],
@@ -376,13 +395,12 @@ export class RegisterFormComponent {
         photo: [null, [Validators.required]],
     });
 
-    selectedPhoto!: string;
-
     constructor(
         private fb: FormBuilder,
         private router: ActivatedRoute,
         private authService: LoginService,
-        private cd: ChangeDetectorRef
+        private cd: ChangeDetectorRef,
+        private registerFormService: RegisterFormService
     ) {}
 
     ngOnInit(): void {
@@ -398,11 +416,11 @@ export class RegisterFormComponent {
                 lastNames: user.last_name.toLowerCase(),
             });
         });
+
     }
 
-
     get maxDate() {
-        return new Date()
+        return new Date();
     }
 
     errorsByControl(control: string) {
@@ -434,23 +452,36 @@ export class RegisterFormComponent {
     }
 
     onSelectFile(event: any, control: string) {
-        const file = event.target.files[0];
+        try {
+            const file = event.target.files[0];
 
-        if (
-            (control == 'schedule' && file.type !== 'application/pdf') ||
-            (control == 'photo' && file.type.indexOf('image') === -1)
-        ) {
-            this.registerForm.get(control)?.setErrors({ invalid: true });
-            return;
-        }
+            if (
+                (control == 'schedule' && file.type !== 'application/pdf') ||
+                (control == 'photo' && file.type.indexOf('image') === -1)
+            ) {
+                this.registerForm.get(control)?.setErrors({ invalid: true });
+                return;
+            }
 
-        if (control === 'photo') {
-            this.showPhotoSelected(file);
-        }
+            this.scheduleFileControls.set({file, loading: true, ok: false})
+            
+            this.validateFile()
 
-        this.registerForm.patchValue({
-            [control]: file,
-        });
+        } catch (error) {}
+    }
+
+    validateFile() {
+        this.registerFormService
+            .checkScheduleFile(this.scheduleFileControls().file)
+            .subscribe({
+                next: (res) => {
+                    this.scheduleFileControls.update(last => ({...last, loading:false, ok:true}))
+                    // this.registerForm.patchValue({
+                    //     'schedule': this.scheduleFileControls().file,
+                    // });
+                },
+                error: (err) => this.scheduleFileControls.set({file:null, loading:false, ok:false})
+            });
     }
 
     openFileBrowser(control: string) {
@@ -461,14 +492,5 @@ export class RegisterFormComponent {
         if (control === 'photo') {
             this.photo?.nativeElement.click();
         }
-    }
-
-    showPhotoSelected(file: File) {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (e) => {
-            this.selectedPhoto = reader.result as string;
-            this.cd.markForCheck();
-        };
     }
 }
