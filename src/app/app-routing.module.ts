@@ -28,9 +28,8 @@ import { leaveRegisterFormGuard, registerFormGuard } from './register-form/guard
             { path: 'notfound', component: NotfoundComponent },
             { 
                 path: 'registro-beca', 
-                component: RegisterFormComponent, 
-                canActivate: [authGuard,registerFormGuard], 
-                canDeactivate:[leaveRegisterFormGuard]
+                loadChildren: () => import('./register-form/register-router.routes').then(r => r.REGISTER_FORM_ROUTES),
+                canActivate: [authGuard]
             },
             { path: '**', redirectTo: '/notfound' },
         ], { scrollPositionRestoration: 'enabled', anchorScrolling: 'enabled', onSameUrlNavigation: 'reload' })

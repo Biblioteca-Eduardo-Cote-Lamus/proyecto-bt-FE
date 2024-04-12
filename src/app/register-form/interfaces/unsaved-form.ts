@@ -1,3 +1,3 @@
 export interface UnsavedForm {
-    unSavedForm: () => boolean;
+    unSaveForm: boolean;
 }

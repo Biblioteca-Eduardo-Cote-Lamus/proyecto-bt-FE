@@ -12,3 +12,72 @@ $gutter: 1rem; //for primeflex grid system
 @import "assets/demo/styles/flags/flags.css";
 @import "assets/demo/styles/badges.scss";
 @import "assets/demo/styles/code.scss";
+
+.btn {
+    --btn-color: rgb(124 45 18);
+    --btn-bg: rgb(252 211 77);
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background-color: var(--btn-bg);
+    color: var(--btn-color);
+    padding: 14px 22px;
+    border-radius: 8px;
+    border: 0;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    font-family: system-ui;
+    border: 2px solid var(--btn-color);
+    transition: 100ms ease;
+    box-shadow: 5px 5px 0 0 var(--btn-color);
+    width: 200px
+  }
+
+  .btn--secondary {
+    --btn-color: #444;
+    --btn-bg: #fafafa;
+  }
+
+  .btn svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .btn:hover {
+    box-shadow: 2px 2px 0 0 var(--btn-color);
+  }
+
+  .btn:active {
+    transition: 50ms ease;
+    box-shadow:  0 0 0 0 var(--btn-color);
+  }
+
+  .btn:focus-visible {
+    outline: 0;
+    --btn-color: #002cc8;
+  }
+
+  .btn:focus-visible::after {
+    position: absolute;
+    left: 50%;
+    top: calc(100% + 12px);
+    transform: translateX(-50%);
+    content: "\x21E7";
+    animation: float .5s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0% {
+      transform: translateX(-50%) translatey(0px);
+    }
+    50% {
+      transform: translateX(-50%) translatey(-6px);
+    }
+    100% {
+      transform: translateX(-50%) translatey(0px);
+    }
+  }

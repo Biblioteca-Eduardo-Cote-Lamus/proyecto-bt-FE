@@ -5,6 +5,7 @@ import { LoginData } from '../api/login';
 import { BehaviorSubject, map, Observable } from 'rxjs';
 import { LoginResponse } from '../api/loginSuccessfull';
 import { User } from '../api/User';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +15,8 @@ export class LoginService {
   private user: BehaviorSubject<User | undefined | null> = new BehaviorSubject<User | undefined | null>(null);
 
   constructor(
-    private http: HttpClient
+    private http: HttpClient,
+    private  router: Router
   ) { 
     const token = localStorage.getItem('token');
     if (token) {
@@ -24,6 +26,10 @@ export class LoginService {
 
   get user$(): Observable<User | undefined | null> { 
     return this.user.asObservable();
+  }
+
+  get userValues() {
+    return this.user.getValue()
   }
 
   public login(data: LoginData): Observable<LoginResponse> {
@@ -45,6 +51,7 @@ export class LoginService {
   public logout(): void {
     localStorage.clear();
     this.user.next(null);
+    this.router.navigate(['/login'], {replaceUrl: true})
   }
 
   public isLoggedIn(): boolean {

@@ -7,6 +7,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PasswordModule } from 'primeng/password';
 import { InputTextModule } from 'primeng/inputtext';
 import { LoginService } from '../services/login.service';
+import { RedirectService } from '../services/redirect.service';
 
 @Component({
     selector: 'app-login',
@@ -41,7 +42,8 @@ export class LoginComponent {
     constructor(
         private fb: FormBuilder, 
         private loginServie: LoginService,
-        private router: Router
+        private router: Router,
+        private redirectService: RedirectService
     ) {}
 
     ngOnInit(): void {
@@ -65,7 +67,8 @@ export class LoginComponent {
                 localStorage.setItem('token', JSON.stringify(response.data.token));
                 localStorage.setItem('user', JSON.stringify(response.data.user));
                 if(response.data.user.rol.id === 3){
-                    this.router.navigate(['/backoffice/becas-trabajo/'], {replaceUrl: true});
+                    this.router.navigate([this.redirectService.getRedirectUrl() || '/backoffice/becas-trabajo/'], {replaceUrl: true});
+                    this.redirectService.clearRedirectUrl()
                     return;
                 }
                 this.router.navigate(['/backoffice'], {replaceUrl: true});
