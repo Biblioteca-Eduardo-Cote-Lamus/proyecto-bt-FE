@@ -3,6 +3,9 @@ import { NgModule } from '@angular/core';
 import { NotfoundComponent } from './demo/components/notfound/notfound.component';
 import { AppLayoutComponent } from "./layout/app.layout.component";
 import { authGuard } from './auth/guards/Auth.guard';
+import { RegisterFormComponent } from './register-form/register-form.component';
+import { leaveRegisterFormGuard, registerFormGuard } from './register-form/guards';
+
 
 @NgModule({
     imports: [
@@ -23,6 +26,12 @@ import { authGuard } from './auth/guards/Auth.guard';
             },
             { path: '', loadChildren: () => import('./auth/auth-routing').then(m => m.AUTH_ROUTES)},
             { path: 'notfound', component: NotfoundComponent },
+            { 
+                path: 'registro-beca', 
+                component: RegisterFormComponent, 
+                canActivate: [authGuard,registerFormGuard], 
+                canDeactivate:[leaveRegisterFormGuard]
+            },
             { path: '**', redirectTo: '/notfound' },
         ], { scrollPositionRestoration: 'enabled', anchorScrolling: 'enabled', onSameUrlNavigation: 'reload' })
     ],
