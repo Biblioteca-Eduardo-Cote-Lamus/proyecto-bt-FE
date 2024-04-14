@@ -46,15 +46,15 @@ export class SelectionComponent {
             },
             {
                 label: 'Preselección',
-                routerLink: 'seat',
+                routerLink: 'preseleccion',
             },
             {
                 label: 'Horario',
-                routerLink: 'payment',
+                routerLink: 'horario',
             },
             {
                 label: 'Seleccionados',
-                routerLink: 'confirmation',
+                routerLink: 'seleccionados',
             },
         ]);
 

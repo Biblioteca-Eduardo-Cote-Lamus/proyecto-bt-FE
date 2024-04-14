@@ -36,8 +36,22 @@ export class SelectionStateService {
     return this.http.get(`${environment.apiUrlBase}/selection/register-form-state`)
   }
 
+  extendedLimitDate(date: Date){
+    return this.http.post(`${environment.apiUrlBase}/selection/extended-date-form`, {date})
+  }
+
   private getCurrentStateSelection() {
     return this.http.get(`${environment.apiUrlBase}/selection/current-selection-state`)
-}
+  }
+
+  /**
+   * Confirm the 'information sending' status and advance to preselection
+   */
+  registerFormDone(){
+    this.http.get(`${environment.apiUrlBase}/selection/confirm-register-form`).subscribe({
+      next: (res) => this.nextCurrentSelectionState(),
+      error: err => console.log(err)
+    })
+  }
 
 }

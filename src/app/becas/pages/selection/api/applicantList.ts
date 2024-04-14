@@ -1,23 +1,14 @@
 export interface ApplicantListResponse {
-    id: number,
-    email: string,
-    first_name: string,
-    last_name: string,
-    is_active: boolean,
-    rol: {
-        id: number,
-        rol: string
-    }
+    first_name:  string;
+    last_name:   string;
+    email:       string;
+    photo:       null | string;
+    sended_form: boolean;
 }
 
 export interface ApplicantList {
-    id: number,
-    email: string,
-    firstName: string,
-    lastName: string,
-    isActive: boolean,
-    rol: {
-        id: number,
-        rol: string
-    }
+    fullName: string,
+    email:       string;
+    photo:       null | string;
+    sendedForm: boolean;
 }

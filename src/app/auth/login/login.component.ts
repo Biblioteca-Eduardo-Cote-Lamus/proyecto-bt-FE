@@ -66,12 +66,7 @@ export class LoginComponent {
             next: (response) => {
                 localStorage.setItem('token', JSON.stringify(response.data.token));
                 localStorage.setItem('user', JSON.stringify(response.data.user));
-                if(response.data.user.rol.id === 3){
-                    this.router.navigate([this.redirectService.getRedirectUrl() || '/backoffice/becas-trabajo/'], {replaceUrl: true});
-                    this.redirectService.clearRedirectUrl()
-                    return;
-                }
-                this.router.navigate(['/backoffice'], {replaceUrl: true});
+                this.redirectService.redirecTo()
             },
             error: (error) => {console.error(error)}
         })

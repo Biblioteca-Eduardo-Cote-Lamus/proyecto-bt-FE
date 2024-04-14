@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Output, signal, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, OnDestroy, OnInit, Output, signal, ViewChild } from '@angular/core';
 import { InputTextModule } from 'primeng/inputtext';
 import { DropdownModule } from 'primeng/dropdown';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -15,7 +15,7 @@ import { ChipsModule } from 'primeng/chips';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { TooltipModule } from 'primeng/tooltip';
 import { RegisterFormService } from '../../services/register-form.service';
-import { debounceTime } from 'rxjs';
+import { debounceTime, Subscription } from 'rxjs';
 // import { UnsavedForm } from './interfaces/unsaved-form';
 
 @Component({
@@ -368,7 +368,7 @@ import { debounceTime } from 'rxjs';
     styles: ``,
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FormComponent { 
+export class FormComponent implements OnInit, OnDestroy { 
     
 
     @ViewChild('schedule') schedule?: ElementRef;
@@ -397,6 +397,7 @@ export class FormComponent {
             ],
         ],
     });
+    registerValueSubs$ = new Subscription()
 
     @Output() isDirty = new EventEmitter<boolean>(this.registerForm.dirty);
 
@@ -419,13 +420,14 @@ export class FormComponent {
         }
 
         this.authService.user$.subscribe((user) => {
-            this.registerForm.patchValue({
-                firstName: user.first_name,
-                lastNames: user.last_name,
-            });
+            if(user !== null)
+                this.registerForm.patchValue({
+                    firstName: user.first_name,
+                    lastNames: user.last_name,
+                });
         });
 
-        this.registerForm.valueChanges.pipe(debounceTime(500)).subscribe({
+        this.registerValueSubs$ = this.registerForm.valueChanges.pipe(debounceTime(500)).subscribe({
             next: (value) => {
                 localStorage.setItem('registerForm', JSON.stringify(value));
                 this.isDirty.emit(this.unSavedForm())    
@@ -552,6 +554,10 @@ export class FormComponent {
     unSavedForm() {
         return this.registerForm.dirty;
     };
+
+    ngOnDestroy(): void {
+        this.registerValueSubs$.unsubscribe()
+    }
 
 
 }
