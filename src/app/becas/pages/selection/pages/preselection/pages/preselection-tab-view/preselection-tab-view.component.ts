@@ -28,7 +28,7 @@ import { SelectItemGroup } from 'primeng/api';
 
       <section class="col-12 md:col-9">
         <div class="surface-card p-4 border-round border-1 border-gray-200 " >
-          <app-preselection-table-by-ubication [list]="becas" />
+          <table-by-ubication [list]="becas" />
         </div>
       </section>
     </div>

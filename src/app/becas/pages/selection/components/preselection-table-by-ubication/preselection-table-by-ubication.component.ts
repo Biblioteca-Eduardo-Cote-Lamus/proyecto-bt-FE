@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { TableModule } from 'primeng/table';
 
 @Component({
-    selector: 'app-preselection-table-by-ubication',
+    selector: 'table-by-ubication',
     standalone: true,
     imports: [TableModule, NgClass],
     template: `
