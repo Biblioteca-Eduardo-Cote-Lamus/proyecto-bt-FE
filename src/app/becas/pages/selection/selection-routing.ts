@@ -17,6 +17,7 @@ export const SELECTION_ROUTES: Routes = [
     },
     {
         path: 'preseleccion',
+        loadChildren: () => import('./pages/preselection/preselection.routes').then(p => p.PRESELECCTION_ROUTES),
         component: PreselectionComponent
     },
     {
