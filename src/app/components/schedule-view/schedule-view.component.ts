@@ -1,5 +1,5 @@
 import { CommonModule, JsonPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { TableModule } from 'primeng/table';
 
 @Component({
@@ -22,6 +22,9 @@ import { TableModule } from 'primeng/table';
             scrollHeight="500px"
             styleClass="p-datatable-gridlines p-datatable-striped"
         >
+            <ng-template pTemplate="emptymessage">
+                No hay horario asignado aún
+            </ng-template>
             <ng-template pTemplate="header" let-columns>
                 <tr>
                     <th>Hora</th>
@@ -34,7 +37,7 @@ import { TableModule } from 'primeng/table';
                 <tr>
                     <td>{{ time }}</td>
                     @for (day of columns; track $i) { 
-                      @if(schedule[day.toLowerCase()].includes(time) ) {
+                      @if(schedule.includes(time)  ) {
                         <td class="">
                             <span class="time-card inline-block p-2 w-4rem border-round bg-green-400 text-white transition-transform transition-duration-150 hover:shadow-1">
                                 <i class="pi pi-check"></i>
@@ -60,14 +63,7 @@ import { TableModule } from 'primeng/table';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ScheduleViewComponent {
-    schedule = {
-        lunes: ['07:00-08:00', '08:00-09:00', '09:00-10:00'],
-        martes: ['07:00-08:00', '08:00-09:00', '09:00-10:00'],
-        miercoles: ['07:00-08:00', '08:00-09:00', '09:00-10:00'],
-        jueves: ['07:00-08:00', '08:00-09:00', '09:00-10:00'],
-        viernes: ['07:00-08:00', '08:00-09:00', '09:00-10:00'],
-        sabado: []
-    };
+    @Input({required: true}) schedule: string[] = []
 
     get colDays() {
         return ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
