@@ -17,6 +17,10 @@ export class UbicationService {
     )
   }
 
+  getManagerList(){
+    return this.http.get(`${environment.apiUrlBase}/ubications/list-managers`)
+  }
+
   private mappedReponse(res:any):Ubication{
     const {id, name, total_becas, manager,is_schedule_office, schedule } = res
     return {

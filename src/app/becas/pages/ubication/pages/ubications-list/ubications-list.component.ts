@@ -6,16 +6,17 @@ import { TooltipModule } from 'primeng/tooltip';
 import { UbicationService } from '../services/ubication.service';
 import { Ubication } from '../../api';
 import { UbicationInfoModalComponent } from '../../components/ubication-info-modal/ubication-info-modal.component';
+import { UbicationFormComponent } from '../../components/ubication-form/ubication-form.component';
 
 @Component({
     selector: 'app-ubications-list',
     standalone: true,
-    imports: [ButtonModule, TableModule, TooltipModule,NgClass, UbicationInfoModalComponent],
+    imports: [ButtonModule, TableModule, TooltipModule,NgClass, UbicationInfoModalComponent, UbicationFormComponent],
     template: `
         <main class="pt-3 pr-5 lg:pl-5">
             <section  class="card flex justify-content-between align-items-center">
                 <h2 class="m-0">Ubicaciones</h2>
-                <p-button label="Agregar" icon="pi pi-plus" iconPos="right">
+                <p-button label="Agregar" icon="pi pi-plus" iconPos="right" (onClick)="ubicationModalTrigger = true">
                 </p-button>
             </section>
 
@@ -93,6 +94,9 @@ import { UbicationInfoModalComponent } from '../../components/ubication-info-mod
           @if(viewModalTrigger){  
             <app-ubication-info [(visible)]="viewModalTrigger" [(ubication)]="selectedUbication" />
           }
+          @if(ubicationModalTrigger){
+            <app-ubication-form [(visible)]="ubicationModalTrigger" />
+          }
         </main>
     `,
     styles: `
@@ -115,6 +119,8 @@ export class UbicationsListComponent implements OnInit {
     columns = computed(() => Object.keys(this.ubications()[0]).slice(0,-1))
 
     viewModalTrigger = false;
+
+    ubicationModalTrigger = true;
 
     selectedUbication: Ubication | null | undefined 
 
