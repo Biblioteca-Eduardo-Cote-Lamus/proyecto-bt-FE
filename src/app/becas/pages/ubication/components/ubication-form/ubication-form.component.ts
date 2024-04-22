@@ -63,7 +63,7 @@ import { InputTextareaModule } from 'primeng/inputtextarea';
                         class="bg-white h-full mr-3 col md:col-9 border-round"
                     >
                         <h2 class="p-4">{{ getTitle() }}</h2>
-                        <form class="p-4" [formGroup]="ubicationForm">
+                        <form class="p-4" [formGroup]="ubicationForm" (ngSubmit)="submit()">
                             <div class="formgrid grid">
                                 <div class="field col-12 md:col-6 p-fluid">
                                     <label for="ubication" class="block w-full">Ubicación</label>
@@ -189,6 +189,7 @@ import { InputTextareaModule } from 'primeng/inputtextarea';
                                         [rows]="3"
                                         [ngClass]="{
                                             'ng-invalid ng-dirty': errorByControl('description'),
+                                            'border-green-400': !ubicationForm.get('description').invalid
                                         }">
                                     </textarea>
                                     @if(errorByControl('description')){ 
@@ -204,12 +205,14 @@ import { InputTextareaModule } from 'primeng/inputtextarea';
                                     <label class="block w-full">
                                         Foto de la ubicacion
                                     </label>
-                                    <div class="border-2 border-dashed border-round surface-ground py-3  flex flex-column  justify-content-center align-items-center font-medium ">
+                                    <div class="border-2 border-dashed border-round surface-ground py-3  flex flex-column  justify-content-center align-items-center font-medium "
+                                         [ngClass]="{'border-green-400': ubicationForm.get('photo').value}">
                                         <input
                                             type="file"
                                             class="hidden"
                                             accept="image/*"
                                             #photo
+                                            (change)="loadImage($event)"
                                         />
                                         <p-button
                                             label="Seleccionar"
@@ -234,6 +237,7 @@ import { InputTextareaModule } from 'primeng/inputtextarea';
                                             [targetStyle]="{ height: '200px' }"
                                             (onMoveToTarget)="refres()"
                                             (onMoveToSource)="refres()"
+                                            [dragdrop]="true"
                                         >
                                             <ng-template let-hour pTemplate="item">
                                                 <div
@@ -252,7 +256,7 @@ import { InputTextareaModule } from 'primeng/inputtextarea';
                                                         <div
                                                             class="flex align-items-center gap-2"
                                                         >
-                                                            <span>a.m</span>
+                                                            <span> {{ getTimeFormat(hour) }} </span>
                                                         </div>
                                                     </div>
                                                     <span
@@ -270,7 +274,7 @@ import { InputTextareaModule } from 'primeng/inputtextarea';
                                 }
                             </div>
                             <div class="flex justify-content-end mt-6">
-                                <p-button label="Enviar" icon="pi pi-send" iconPos="right" [disabled]="ubicationForm.invalid"> </p-button>
+                                <p-button type="submit" label="Enviar" icon="pi pi-send" iconPos="right" [disabled]="ubicationForm.invalid"> </p-button>
                             </div>
                         </form>
                     </section>
@@ -278,6 +282,13 @@ import { InputTextareaModule } from 'primeng/inputtextarea';
                     <section class="bg-white h-full col p-0  border-round">
                         <div class="w-full h-full">
                             <div class="profile-header surface-200 border-round-top h-20rem " (click)="openImgFile()">
+                                @if (ubicationForm.get('photo').value) {
+                                    <img
+                                        src="{{ ubicationForm.get('photo').value }}"
+                                        alt="imagen de la ubicacion"
+                                        class="w-full h-full object-cover"
+                                    />
+                                } 
                             </div>
                             <div class="">
                                 <div
@@ -289,10 +300,12 @@ import { InputTextareaModule } from 'primeng/inputtextarea';
                                         class="border-circle bg-white p-2 w-full "
                                     />
                                 </div>
-                                <div class="p-3 text-center">
-                                    <h4 class="">
-                                        {{ ubicationForm.get('manager').value.fullName || 'Sin asignar' }}
-                                    </h4>
+                                <div class="p-3 ">
+                                    <ul class="p-0 list-none">
+                                        <li class="mb-2">Ubicacion: {{ ubicationForm.get('ubication').value || 'Sin asignar' }}</li>
+                                        <li class="mb-2">Encargado: {{ ubicationForm.get('manager').value.fullName || 'Sin asginar' }}</li>
+                                        <li class="mb-2">Becas asignados: {{ ubicationForm.get('becas').value || '1' }}</li>
+                                    </ul>
                                     <p class="">
                                         {{ ubicationForm.get('description').value || 'Sin descripcion' }}
                                     </p>
@@ -337,6 +350,8 @@ export class UbicationFormComponent implements OnInit, Modal, FormErros {
 
     @ViewChild('photo') photoFile: ElementRef
 
+    @Output() onSubmit = new EventEmitter();
+
     sourceHours: string[] = [
         '06:00-07:00',
         '07:00-08:00',
@@ -362,19 +377,22 @@ export class UbicationFormComponent implements OnInit, Modal, FormErros {
 
     ubicationForm: FormGroup = this.fb.group({
         ubication: ['', [Validators.required, Validators.minLength(5)]],
-        becas: [ 1, [Validators.required, Validators.min(1), Validators.max(10)],],
+        becas: [ 0, [Validators.required, Validators.min(1), Validators.max(10)],],
         manager: ['', [Validators.required]],
         typeSchedule: ['', [Validators.required]],
-        schedule: [''],
+        schedule: ['', [Validators.required]],
         photo: [''],
         description: ['', [Validators.required]]
     });
+
+    photoUbication!: File; 
 
     managersList = []
 
     constructor(private fb: FormBuilder, private ubicationService: UbicationService) {}
 
     ngOnInit(): void {
+
         this.ubicationService.getManagerList().subscribe({
             next: ({data}: any) => {
                 this.managersList = data
@@ -422,14 +440,19 @@ export class UbicationFormComponent implements OnInit, Modal, FormErros {
         return (this.ubicationForm.get(control).touched && !this.ubicationForm.get(control).invalid) || !this.ubicationForm.get(control).invalid  ? 'w-full border-green-400' : 'w-full'
     }
 
+    // Funcion para obtener el titulo del modal
     getTitle() {
         return this.ubication
             ? 'Edita la información'
             : 'Agrega una nueva ubicación';
     }
 
-    onClose() {}
+    // Funcion para cerrar el modal
+    onClose() {
+        this.visibleChange.emit(false)
+    }
 
+    // Funcion para refrescar las horas de trabajo desde el picklist
     refres() {
         if (this.targetHours.length === 0) {
             this.targetHoursSignal.set([]);
@@ -439,14 +462,17 @@ export class UbicationFormComponent implements OnInit, Modal, FormErros {
         this.ubicationForm.get('schedule').setValue(this.targetHours)
     }
 
+    // Funcion para mostrar el picklist de horas
     showPickHours(){
         const value = this.ubicationForm.get('typeSchedule').value
         return value === this.scheduleType[1]
     }
 
+    // Funcion para setear las horas de trabajo dado el tipo de horario
     setScheduleHours(event: any){
         const {value} = event
 
+        // 0 = Oficina, 1 = Especial
         if(value === this.scheduleType[0]){
             this.targetHoursSignal.set([
                 '08:00-09:00',
@@ -460,12 +486,60 @@ export class UbicationFormComponent implements OnInit, Modal, FormErros {
             ])
         }
 
-        if(value === this.scheduleType[1])
+        if(value === this.scheduleType[1]){
             this.targetHoursSignal.set([])
+        }
         
     }
 
+    // Funcion para abrir el input file
     openImgFile(){
         this.photoFile.nativeElement.click()
+    }
+
+    //funcion para obtener el formato de la hora en el picklist am/pm
+    getTimeFormat(hour: string){
+        return Number(hour.slice(0,2)) < 12 ? 'a.m.' : 'p.m.'
+    }
+
+    // Funcion para cargar la imagen
+    loadImage(event: any){
+        const file = event.target.files[0]
+        const reader = new FileReader()
+
+        this.photoUbication = file
+
+        reader.onload = (e) => {
+            const photo = e.target.result
+            this.ubicationForm.get('photo').setValue(photo)
+        }
+
+        reader.readAsDataURL(file)
+    }
+
+    // funcion para enviar el formulario
+    submit(){
+        if(this.ubicationForm.invalid){
+            return
+        }
+
+        const {ubication, becas, manager,typeSchedule, schedule, description} = this.ubicationForm.value
+        
+        const ubicationFormData = new FormData()
+
+        ubicationFormData.append('ubication', JSON.stringify({
+            ubication,
+            becas,
+            manager: manager.id,
+            typeSchedule,
+            schedule,
+            description
+        }))
+
+        ubicationFormData.append('photo', this.photoUbication as Blob) 
+
+        this.onSubmit.emit(ubicationFormData)
+        this.onClose()
+        
     }
 }

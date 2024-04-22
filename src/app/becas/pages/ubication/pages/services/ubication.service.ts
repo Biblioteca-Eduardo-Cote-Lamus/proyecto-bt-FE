@@ -21,6 +21,10 @@ export class UbicationService {
     return this.http.get(`${environment.apiUrlBase}/ubications/list-managers`)
   }
 
+  registerUbication(data: FormData){
+    return this.http.post(`${environment.apiUrlBase}/ubications/create-ubication`, data)
+  }
+
   private mappedReponse(res:any):Ubication{
     const {id, name, total_becas, manager,is_schedule_office, schedule } = res
     return {

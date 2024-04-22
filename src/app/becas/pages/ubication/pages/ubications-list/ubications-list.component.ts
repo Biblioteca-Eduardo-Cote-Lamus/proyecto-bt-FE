@@ -7,11 +7,13 @@ import { UbicationService } from '../services/ubication.service';
 import { Ubication } from '../../api';
 import { UbicationInfoModalComponent } from '../../components/ubication-info-modal/ubication-info-modal.component';
 import { UbicationFormComponent } from '../../components/ubication-form/ubication-form.component';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
 
 @Component({
     selector: 'app-ubications-list',
     standalone: true,
-    imports: [ButtonModule, TableModule, TooltipModule,NgClass, UbicationInfoModalComponent, UbicationFormComponent],
+    imports: [ButtonModule, TableModule, TooltipModule,NgClass, UbicationInfoModalComponent, UbicationFormComponent, ToastModule],
     template: `
         <main class="pt-3 pr-5 lg:pl-5">
             <section  class="card flex justify-content-between align-items-center">
@@ -95,8 +97,9 @@ import { UbicationFormComponent } from '../../components/ubication-form/ubicatio
             <app-ubication-info [(visible)]="viewModalTrigger" [(ubication)]="selectedUbication" />
           }
           @if(ubicationModalTrigger){
-            <app-ubication-form [(visible)]="ubicationModalTrigger" />
+            <app-ubication-form [(visible)]="ubicationModalTrigger" (onSubmit)="sendForm($event)" />
           }
+          <p-toast />
         </main>
     `,
     styles: `
@@ -111,8 +114,10 @@ import { UbicationFormComponent } from '../../components/ubication-form/ubicatio
     }
   `,
     changeDetection: ChangeDetectionStrategy.OnPush,
+    providers: [MessageService]
 })
 export class UbicationsListComponent implements OnInit {
+
 
     ubications = signal<Ubication[]>([])
 
@@ -120,26 +125,68 @@ export class UbicationsListComponent implements OnInit {
 
     viewModalTrigger = false;
 
-    ubicationModalTrigger = true;
+    ubicationModalTrigger = false;
 
     selectedUbication: Ubication | null | undefined 
 
-    constructor(private ubicationService: UbicationService){}
+    constructor(private ubicationService: UbicationService, private messageService: MessageService){}
 
     ngOnInit(): void {
 
-      this.ubicationService.getUbicationsList().subscribe({
-        next: res => this.ubications.set(res)
-      })
+      this.getUbications()
       
     }
 
+    /**
+     * Call the service to get the list of ubications
+     */
+    getUbications(){
+      this.ubicationService.getUbicationsList().subscribe({
+        next: res => this.ubications.set(res)
+      })
+    }
+
+    /**
+     * Get the columns to show in the table
+     * @returns string[] columns to show in the table 
+     */
     getColumns() {
         return ['ID','Ubicacion',  'Tipo horario', 'Becas asignados', 'Encargado',]
     }
 
+
+    /**
+     * Open the modal to view the information of the ubication
+     * @param ubication:Ubication to show details
+     */
     openViewModal(ubication: Ubication){
       this.viewModalTrigger=true; 
       this.selectedUbication=ubication
+    }
+
+    /**
+     * Send the form to register the ubication
+     * @param event: formdata to send to the service
+     */
+    sendForm(event: any) {
+      this.ubicationService.registerUbication(event).subscribe({
+        next: (res) => {
+          this.messageService.clear()
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Ubicacion registrada',
+            detail: 'Ubicacion registrada con exito'
+          })
+          this.getUbications()  
+        },
+        error: (err) => {          
+          this.messageService.clear()
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error al registrar',
+            detail: `${err.error.message}`
+          })
+        }
+      })
     }
 }
