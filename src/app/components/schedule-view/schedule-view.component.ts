@@ -1,6 +1,7 @@
 import { JsonPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, Input, OnChanges, OnInit } from '@angular/core';
 import { TableModule } from 'primeng/table';
+import { ScheduleService } from './schedule.service';
 
 @Component({
     selector: 'app-schedule-view',
@@ -37,7 +38,7 @@ import { TableModule } from 'primeng/table';
                 <tr>
                     <td>{{ time }}</td>
                     @for (day of columns; track $i) { 
-                      @if(schedule.includes(time)  ) {
+                      @if(schedule().includes(time)  ) {
                         <td class="">
                             <span class="time-card inline-block p-2 w-4rem border-round bg-green-400 text-white transition-transform transition-duration-150 hover:shadow-1">
                                 <i class="pi pi-check"></i>
@@ -63,7 +64,10 @@ import { TableModule } from 'primeng/table';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ScheduleViewComponent {
-    @Input({required: true}) schedule: string[] = []
+    
+    schedule = computed(() => this.scheduleService.scheduleFormat)
+
+    constructor(private scheduleService: ScheduleService) {}
 
     get colDays() {
         return ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];

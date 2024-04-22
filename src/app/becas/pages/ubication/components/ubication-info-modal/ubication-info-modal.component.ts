@@ -1,11 +1,12 @@
 
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { DialogModule } from 'primeng/dialog';
 import { ScheduleViewComponent } from 'src/app/components/schedule-view/schedule-view.component';
 import { PreselectionTableByUbicationComponent } from '../../../selection/components/preselection-table-by-ubication/preselection-table-by-ubication.component';
 import { ListboxModule } from 'primeng/listbox';
 import { FormsModule } from '@angular/forms';
 import { Ubication } from '../../api';
+import { ScheduleService } from 'src/app/components/schedule-view/schedule.service';
 
 @Component({
     selector: 'app-ubication-info',
@@ -28,6 +29,7 @@ import { Ubication } from '../../api';
       [resizable]="false"
       header="Informacion detallada"
       (onHide)="closeModal()"
+      [dismissableMask]="true"
     >
       <ng-template pTemplate="headless">
         <div class="grid p-4">
@@ -56,7 +58,7 @@ import { Ubication } from '../../api';
   `,
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class UbicationInfoModalComponent { 
+export class UbicationInfoModalComponent implements OnChanges{ 
 
   @Input({required: true}) visible = false 
   @Output() visibleChange = new EventEmitter<boolean>()
@@ -66,6 +68,20 @@ export class UbicationInfoModalComponent {
 
   options = [ 'Horario', 'Listado de becas']
   selectedOption = this.options[0]
+  
+  constructor(private scheduleService: ScheduleService){}
+
+  ngOnChanges(changes: SimpleChanges): void {
+    const {ubication} = changes
+    if(ubication){
+      const { schedule } = ubication.currentValue
+
+      if(schedule)
+        this.scheduleService.scheduleList = schedule
+   
+    }
+      
+  }
 
   closeModal(){
     this.visibleChange.emit(false)

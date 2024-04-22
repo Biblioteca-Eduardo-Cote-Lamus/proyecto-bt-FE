@@ -6,14 +6,14 @@ import { TooltipModule } from 'primeng/tooltip';
 import { UbicationService } from '../services/ubication.service';
 import { Ubication } from '../../api';
 import { UbicationInfoModalComponent } from '../../components/ubication-info-modal/ubication-info-modal.component';
-import { UbicationFormComponent } from '../../components/ubication-form/ubication-form.component';
+import { UbicationFormModalComponent } from '../../components/ubication-form/ubication-form-modal.component';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 
 @Component({
     selector: 'app-ubications-list',
     standalone: true,
-    imports: [ButtonModule, TableModule, TooltipModule,NgClass, UbicationInfoModalComponent, UbicationFormComponent, ToastModule],
+    imports: [ButtonModule, TableModule, TooltipModule,NgClass, UbicationInfoModalComponent, UbicationFormModalComponent, ToastModule],
     template: `
         <main class="pt-3 pr-5 lg:pl-5">
             <section  class="card flex justify-content-between align-items-center">
@@ -97,7 +97,7 @@ import { ToastModule } from 'primeng/toast';
             <app-ubication-info [(visible)]="viewModalTrigger" [(ubication)]="selectedUbication" />
           }
           @if(ubicationModalTrigger){
-            <app-ubication-form [(visible)]="ubicationModalTrigger" (onSubmit)="sendForm($event)" />
+            <app-ubication-form-modal [(visible)]="ubicationModalTrigger" (onSubmit)="sendForm($event)" />
           }
           <p-toast />
         </main>
