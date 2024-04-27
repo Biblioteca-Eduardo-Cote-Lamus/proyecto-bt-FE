@@ -26,14 +26,16 @@ export class UbicationService {
   }
 
   private mappedReponse(res:any):Ubication{
-    const {id, name, total_becas, manager,is_schedule_office, schedule } = res
+    const {id, name, total_becas, manager,is_schedule_office, schedule, img, description } = res
     return {
       id,
       name,
       isScheduleOffice: is_schedule_office,
       totalBecas: total_becas,
       manager,
-      schedule
+      schedule,
+      img, 
+      description
     }
   }
 

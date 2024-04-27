@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DropdownModule } from 'primeng/dropdown';
@@ -10,6 +10,8 @@ import { PickListModule } from 'primeng/picklist';
 import { UbicationService } from '../../pages/services/ubication.service';
 import { FormErros } from 'src/app/shared/api';
 import { debounceTime } from 'rxjs';
+import { Ubication } from '../../api';
+import { environment } from 'src/environments/environment';
 
 @Component({
     selector: 'app-ubication-form',
@@ -200,7 +202,8 @@ import { debounceTime } from 'rxjs';
                             [targetStyle]="{ height: '200px' }"
                             (onMoveToTarget)="refres()"
                             (onMoveToSource)="refres()"
-                            [dragdrop]="true"
+                            [dragdrop]="ubication ? false : true"
+                            [disabled]="!!ubication "
                         >
                             <ng-template let-hour pTemplate="item">
                                 <div
@@ -250,6 +253,7 @@ export class UbicationFormComponent implements OnInit, FormErros {
 
     @Output() onSubmit = new EventEmitter();
     @Output() onFormChange = new EventEmitter();
+    @Input() ubication: Ubication | null | undefined;
 
     @ViewChild('photo') photoFile: ElementRef
     photoUbication!: File; 
@@ -291,6 +295,32 @@ export class UbicationFormComponent implements OnInit, FormErros {
     constructor(private fb: FormBuilder, private ubicationService: UbicationService){}
 
     ngOnInit(): void {
+
+        if(this.ubication){
+            const {name, totalBecas, manager, isScheduleOffice, schedule, description, img} = this.ubication
+            const managerForm = {
+                fullName: manager.name,
+                ...manager
+            }
+            this.ubicationForm.patchValue({
+                ubication: name,
+                becas: totalBecas,
+                manager: managerForm,
+                typeSchedule: isScheduleOffice ? this.scheduleType[0] : this.scheduleType[1],
+                schedule,
+                description,
+                photo: `${environment.apiUrlBase}${img}`
+            })
+            if(!isScheduleOffice){
+                this.targetHours = schedule
+                this.sourceHours = this.sourceHours.filter(hour => !schedule.includes(hour))
+            }
+
+            this.onFormChange.emit(this.ubicationForm.value)
+
+            this.ubicationForm.get('becas').disable()
+            this.ubicationForm.get('typeSchedule').disable()
+        }
 
         this.ubicationForm.valueChanges.pipe(debounceTime(800)).subscribe((value) => {
             this.onFormChange.emit(value)

@@ -58,7 +58,7 @@ import { UbicationCardComponent } from './ubication-card/ubication-card.componen
                         class="bg-white h-full mr-3 col md:col-9 border-round"
                     >
                         <h2 class="p-4">{{ getTitle() }}</h2>
-                        <app-ubication-form (onSubmit)="submit($event)" (onFormChange)="setUbicationFormValueToCard($event)" />
+                        <app-ubication-form (onSubmit)="submit($event)" (onFormChange)="setUbicationFormValueToCard($event)" [ubication]="ubication" />
                     </section>
 
                     <section class="bg-white h-full col p-0  border-round">
@@ -79,6 +79,7 @@ export class UbicationFormModalComponent implements Modal {
     @Input({ required: true }) visible: boolean = false;
     @Output() visibleChange: EventEmitter<boolean> = new EventEmitter();
     @Input() ubication: Ubication | null | undefined;
+    @Output() ubicationChange = new EventEmitter();
     @Output() onSubmit = new EventEmitter();
 
     ubicationCardValue: any
@@ -100,6 +101,7 @@ export class UbicationFormModalComponent implements Modal {
      */
     onClose() {
         this.visibleChange.emit(false)
+        this.ubicationChange.emit(null)
     }
 
     /**

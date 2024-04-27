@@ -86,6 +86,7 @@ import { ToastModule } from 'primeng/toast';
                                   [outlined]="true"
                                   pTooltip="editar"
                                   tooltipPosition="top"
+                                  (onClick)="selectedUbication = ubication; ubicationModalTrigger = true"
                               >
                               </p-button>
                           </td>
@@ -97,7 +98,7 @@ import { ToastModule } from 'primeng/toast';
             <app-ubication-info [(visible)]="viewModalTrigger" [(ubication)]="selectedUbication" />
           }
           @if(ubicationModalTrigger){
-            <app-ubication-form-modal [(visible)]="ubicationModalTrigger" (onSubmit)="sendForm($event)" />
+            <app-ubication-form-modal [(visible)]="ubicationModalTrigger" (onSubmit)="sendForm($event)" [(ubication)]="selectedUbication" />
           }
           <p-toast />
         </main>
@@ -121,7 +122,7 @@ export class UbicationsListComponent implements OnInit {
 
     ubications = signal<Ubication[]>([])
 
-    columns = computed(() => Object.keys(this.ubications()[0]).slice(0,-1))
+    columns = computed(() => Object.keys(this.ubications()[0]).slice(0,5))
 
     viewModalTrigger = false;
 

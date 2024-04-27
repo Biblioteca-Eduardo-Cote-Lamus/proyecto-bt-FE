@@ -5,6 +5,8 @@ export interface Ubication {
     manager:            Manager;
     isScheduleOffice:   boolean;
     schedule?:          string[];
+    img:                string;
+    description:        string;
 }
 
 export interface Manager {
