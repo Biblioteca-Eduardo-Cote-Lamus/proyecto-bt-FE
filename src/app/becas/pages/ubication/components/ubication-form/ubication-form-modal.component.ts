@@ -124,7 +124,7 @@ export class UbicationFormModalComponent implements Modal {
     /**
      * Funcion para enviar el formulario
      */
-    submit(event: FormData){
+    submit(event:any){
         this.onSubmit.emit(event)
         this.onClose() 
     }

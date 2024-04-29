@@ -37,7 +37,7 @@ import { ToastModule } from 'primeng/toast';
                   </ng-template>
 
                   <ng-template pTemplate="emptymessage">
-                    <i class="pi pi-spin pi-spinner"></i>
+                    <span class="inline-block p-4">No hay ubicaciones registradas.</span>
                   </ng-template>
 
                   <ng-template pTemplate="header" let-columns>
@@ -170,24 +170,51 @@ export class UbicationsListComponent implements OnInit {
      * @param event: formdata to send to the service
      */
     sendForm(event: any) {
-      this.ubicationService.registerUbication(event).subscribe({
-        next: (res) => {
-          this.messageService.clear()
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Ubicacion registrada',
-            detail: 'Ubicacion registrada con exito'
-          })
-          this.getUbications()  
-        },
-        error: (err) => {          
-          this.messageService.clear()
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error al registrar',
-            detail: `${err.error.message}`
-          })
-        }
-      })
+
+      if(event.action === 'add'){
+        this.ubicationService.registerUbication(event.data).subscribe({
+          next: (res) => {
+            this.messageService.clear()
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Ubicacion registrada',
+              detail: 'Ubicacion registrada con exito'
+            })
+            this.getUbications()  
+          },
+          error: (err) => {          
+            this.messageService.clear()
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error al registrar',
+              detail: `${err.error.message}`
+            })
+          }
+        })
+        return
+      }
+
+      if(event.action === 'update'){
+        this.ubicationService.updatedUbication(event.data).subscribe({
+          next: (res) => {
+            this.messageService.clear()
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Actualizacion exitosa',
+              detail: 'Ubicacion actualizada con exito'
+            })
+            this.getUbications()  
+          },
+          error: (err) => {          
+            this.messageService.clear()
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error al actualizar',
+              detail: `${err.error.message}`
+            })
+          }
+        })
+        return
+      }
     }
 }

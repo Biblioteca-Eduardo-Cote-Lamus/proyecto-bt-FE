@@ -12,6 +12,7 @@ import { FormErros } from 'src/app/shared/api';
 import { debounceTime } from 'rxjs';
 import { Ubication } from '../../api';
 import { environment } from 'src/environments/environment';
+import { BecasAssignValidator } from './validators/check-becas-asigned.validator';
 
 @Component({
     selector: 'app-ubication-form',
@@ -260,7 +261,7 @@ export class UbicationFormComponent implements OnInit, FormErros {
     
     ubicationForm: FormGroup = this.fb.group({
         ubication: ['', [Validators.required, Validators.minLength(5)]],
-        becas: [ 0, [Validators.required, Validators.min(1), Validators.max(10)],],
+        becas: [ 0, [Validators.required, Validators.min(1), Validators.max(10)],  ],
         manager: ['', [Validators.required]],
         typeSchedule: ['', [Validators.required]],
         schedule: ['', [Validators.required]],
@@ -292,7 +293,11 @@ export class UbicationFormComponent implements OnInit, FormErros {
 
     managersList = []
 
-    constructor(private fb: FormBuilder, private ubicationService: UbicationService){}
+    constructor(
+        private fb: FormBuilder, 
+        private ubicationService: UbicationService,
+        private assignBecasValidator: BecasAssignValidator
+    ){}
 
     ngOnInit(): void {
 
@@ -302,6 +307,7 @@ export class UbicationFormComponent implements OnInit, FormErros {
                 fullName: manager.name,
                 ...manager
             }
+            
             this.ubicationForm.patchValue({
                 ubication: name,
                 becas: totalBecas,
@@ -311,6 +317,7 @@ export class UbicationFormComponent implements OnInit, FormErros {
                 description,
                 photo: `${environment.apiUrlBase}${img}`
             })
+
             if(!isScheduleOffice){
                 this.targetHours = schedule
                 this.sourceHours = this.sourceHours.filter(hour => !schedule.includes(hour))
@@ -320,9 +327,14 @@ export class UbicationFormComponent implements OnInit, FormErros {
 
             this.ubicationForm.get('becas').disable()
             this.ubicationForm.get('typeSchedule').disable()
+            this.ubicationForm.get('ubication').disable()
         }
 
-        this.ubicationForm.valueChanges.pipe(debounceTime(800)).subscribe((value) => {
+        if(!this.ubication){
+            this.ubicationForm.get('becas').addAsyncValidators(this.assignBecasValidator as any)
+        }
+
+        this.ubicationForm.valueChanges.pipe(debounceTime(900)).subscribe((value) => {
             this.onFormChange.emit(value)
         })
 
@@ -353,7 +365,7 @@ export class UbicationFormComponent implements OnInit, FormErros {
                         );
                         break;
                     default:
-                        errorMessages.push('El valor ingresado no es valido');
+                        errorMessages.push(controlErrors[error]);
                         break;
                 }
             });
@@ -375,6 +387,11 @@ export class UbicationFormComponent implements OnInit, FormErros {
      * @returns boolean si se muestra o no el picklist 
      */
     showPickHours(){
+        // si ando editando, no se podra modificar el horario.
+        if(this.ubication)
+            return false 
+        
+        // caso contratrio se obtiene si es horario de oficina o especial.
         const value = this.ubicationForm.get('typeSchedule').value
         return value === this.scheduleType[1]
     }
@@ -451,6 +468,18 @@ export class UbicationFormComponent implements OnInit, FormErros {
             return
         }
 
+        if(!this.ubication){
+            this.registerNewUbication()
+        }
+
+        if(this.ubication){
+            this.updatedUbication()
+        }
+
+       
+    }
+
+    registerNewUbication(){
         const {ubication, becas, manager,typeSchedule, schedule, description} = this.ubicationForm.value
         
         const ubicationFormData = new FormData()
@@ -466,7 +495,26 @@ export class UbicationFormComponent implements OnInit, FormErros {
 
         ubicationFormData.append('photo', this.photoUbication as Blob) 
 
-        this.onSubmit.emit(ubicationFormData)       
+        this.onSubmit.emit({action: 'add', data: ubicationFormData})       
+    }
+
+
+    updatedUbication(){
+        const {description, manager} = this.ubicationForm.value
+
+        const form = new FormData()
+
+        form.append('ubication', JSON.stringify({
+            description,
+            manager: manager.id,
+            id: this.ubication.id
+        }))
+
+        if (this.photoUbication)
+            form.append('photo', this.photoUbication as Blob)
+
+        this.onSubmit.emit({action: 'update', data: form})
+        
     }
 
 

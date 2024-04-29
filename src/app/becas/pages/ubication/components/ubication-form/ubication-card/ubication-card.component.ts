@@ -51,7 +51,7 @@ interface UbicationCardInput {
                             ubicationFormValue ? ubicationFormValue['manager'].fullName : 'Sin asginar'
                         }}
                     </li>
-                    <li class="mb-2">
+                    <li class="">
                         Becas asignados:
                         {{ ubicationFormValue ? ubicationFormValue['becas'] : 'Sin asignar' }}
                     </li>

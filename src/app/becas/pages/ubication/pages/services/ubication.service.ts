@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
@@ -23,6 +23,15 @@ export class UbicationService {
 
   registerUbication(data: FormData){
     return this.http.post(`${environment.apiUrlBase}/ubications/create-ubication`, data)
+  }
+
+  checkIfCanAssignBecasToUbication(amount: number){
+    const params = new HttpParams().set('amount', amount)
+    return this.http.get(`${environment.apiUrlBase}/ubications/check-total-becas`, { params })
+  }
+  
+  updatedUbication(data: FormData){
+    return this.http.patch(`${environment.apiUrlBase}/ubications/update-ubication`, data)
   }
 
   private mappedReponse(res:any):Ubication{
