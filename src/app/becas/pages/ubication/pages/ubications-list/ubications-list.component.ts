@@ -126,7 +126,7 @@ export class UbicationsListComponent implements OnInit {
 
     viewModalTrigger = false;
 
-    ubicationModalTrigger = false;
+    ubicationModalTrigger = true;
 
     selectedUbication: Ubication | null | undefined 
 

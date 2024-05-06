@@ -6,7 +6,7 @@ import { DropdownModule } from 'primeng/dropdown';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
-import { PickListModule } from 'primeng/picklist';
+// import { PickListModule } from 'primeng/picklist';
 import { UbicationService } from '../../pages/services/ubication.service';
 import { FormErros } from 'src/app/shared/api';
 import { debounceTime } from 'rxjs';
@@ -20,7 +20,7 @@ import { BecasAssignValidator } from './validators/check-becas-asigned.validator
     imports: [
         ButtonModule,
         DropdownModule,
-        PickListModule,
+        // PickListModule,
         InputTextModule,
         InputTextareaModule,
         InputNumberModule,
@@ -29,9 +29,9 @@ import { BecasAssignValidator } from './validators/check-becas-asigned.validator
     ],
     template: `
     
-    <form class="p-4" [formGroup]="ubicationForm" (ngSubmit)="submit()">
+    <form class="" [formGroup]="ubicationForm" (ngSubmit)="submit()">
             <div class="formgrid grid">
-                <div class="field col-12 md:col-6 p-fluid">
+                <div class="field col-12  p-fluid">
                     <label for="ubication" class="block w-full">Ubicación</label>
                     <input
                         id="ubication"
@@ -52,7 +52,7 @@ import { BecasAssignValidator } from './validators/check-becas-asigned.validator
                         } 
                     }
                 </div>
-                <div class="field col-12 md:col-6 p-fluid">
+                <div class="field col-12  p-fluid">
                     <label for="manager" class="block w-full"
                         >Encargado asignado</label
                     >
@@ -91,7 +91,7 @@ import { BecasAssignValidator } from './validators/check-becas-asigned.validator
                     }
                 </div>
 
-                <div class="field col-12 md:col-6 p-fluid">
+                <div class="field col-12  p-fluid">
                     <label for="totalBecas" class="block w-full"
                         >Total de becas asignados</label
                     >
@@ -115,33 +115,29 @@ import { BecasAssignValidator } from './validators/check-becas-asigned.validator
                         } 
                     }
                 </div>
-                <div class="field col-12 md:col-6 p-fluid">
-                    <label
-                        for="typeSchedule"
-                        class="block w-full"
-                        >Tipo de horario</label
-                    >
-                    <p-dropdown
-                        inputId="typeSchedule"
-                        [options]="scheduleType"
-                        placeholder="Seleccione el tipo de horario"
-                        formControlName="typeSchedule"
-                        [ngClass]="{
-                            'ng-invalid ng-dirty': errorByControl('typeSchedule'),
-                        }"
-                        [styleClass]="getInputStyle('typeSchedule')"
-                        (onChange)="setScheduleHours($event)"
-                    ></p-dropdown>
-                    @if(errorByControl('typeSchedule')){ 
-                        @for (error of errorsByControl('typeSchedule'); track error) {
-                            <p class="text-red-500 text-sm">
-                                {{ error }}
-                            </p>
-                        } 
-                    }
+
+                <div class="field col-12 p-fluid">
+                    <label class="block w-full">
+                        Foto de la ubicacion
+                    </label>
+                    <div class="border-2 border-dashed border-round  py-3  flex flex-column  justify-content-center align-items-center font-medium "
+                            [ngClass]="{'border-green-400': ubicationForm.get('photo').value, 'border-gray-300': !ubicationForm.get('photo').value}">
+                        <input
+                            type="file"
+                            class="hidden"
+                            accept="image/*"
+                            #photo
+                            (change)="loadImage($event)"
+                        />
+                        <p-button
+                            label="Seleccionar"
+                            (onClick)="openImgFile()"
+                            type="button"
+                        ></p-button>
+                    </div>
                 </div>
 
-                <div class="field col-12 md:col-6 p-fluid">
+                <div class="field col-12 p-fluid">
                     <label
                         for="description"
                         class="block w-full"
@@ -167,86 +163,12 @@ import { BecasAssignValidator } from './validators/check-becas-asigned.validator
                     }
                 </div>
 
-                <div class="field col-12 md:col-6 p-fluid">
-                    <label class="block w-full">
-                        Foto de la ubicacion
-                    </label>
-                    <div class="border-2 border-dashed border-round surface-ground py-3  flex flex-column  justify-content-center align-items-center font-medium "
-                            [ngClass]="{'border-green-400': ubicationForm.get('photo').value}">
-                        <input
-                            type="file"
-                            class="hidden"
-                            accept="image/*"
-                            #photo
-                            (change)="loadImage($event)"
-                        />
-                        <p-button
-                            label="Seleccionar"
-                            (onClick)="openImgFile()"
-                            type="button"
-                        ></p-button>
-                    </div>
-                </div>
-
-                @if (showPickHours()) {
-                    <div class="field col-12 ">
-                        <label class="inline-block pb-4"
-                            >Selecciona las horas
-                        </label>
-                        <p-pickList
-                            [source]="sourceHours"
-                            [target]="targetHours"
-                            sourceHeader="Horas disponibles"
-                            targetHeader="Horas asignadas"
-                            [responsive]="true"
-                            [sourceStyle]="{ height: '200px' }"
-                            [targetStyle]="{ height: '200px' }"
-                            (onMoveToTarget)="refres()"
-                            (onMoveToSource)="refres()"
-                            [dragdrop]="ubication ? false : true"
-                            [disabled]="!!ubication "
-                        >
-                            <ng-template let-hour pTemplate="item">
-                                <div
-                                    class="flex flex-wrap p-2 align-items-center gap-3"
-                                >
-                                    <i
-                                        class="pi pi-clock"
-                                        style="font-size: 1.5rem"
-                                    ></i>
-                                    <div
-                                        class="flex-1 flex flex-column gap-2"
-                                    >
-                                        <span class="font-bold">{{
-                                            hour
-                                        }}</span>
-                                        <div
-                                            class="flex align-items-center gap-2"
-                                        >
-                                            <span> {{ getTimeFormat(hour) }} </span>
-                                        </div>
-                                    </div>
-                                    <span
-                                        class="font-bold text-900"
-                                    >
-                                        <i
-                                            class="pi pi-calendar"
-                                            style="font-size: 1.5rem"
-                                        ></i>
-                                    </span>
-                                </div>
-                            </ng-template>
-                        </p-pickList>
-                    </div>
-                }
             </div>
-            <div class="flex justify-content-end mt-6">
+            <!-- <div class="flex justify-content-end mt-6">
                 <p-button type="submit" label="Enviar" icon="pi pi-send" iconPos="right" [disabled]="ubicationForm.invalid"> </p-button>
-            </div>
-        </form>
+            </div> -->
+    </form>
 
-    
-    
     `,
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -263,31 +185,9 @@ export class UbicationFormComponent implements OnInit, FormErros {
         ubication: ['', [Validators.required, Validators.minLength(5)]],
         becas: [ 0, [Validators.required, Validators.min(1), Validators.max(10)],  ],
         manager: ['', [Validators.required]],
-        typeSchedule: ['', [Validators.required]],
-        schedule: ['', [Validators.required]],
         photo: [''],
         description: ['', [Validators.required]]
     });
-
-    targetHours: string[] = [];
-    sourceHours: string[] = [
-        '06:00-07:00',
-        '07:00-08:00',
-        '08:00-09:00',
-        '09:00-10:00',
-        '10:00-11:00',
-        '11:00-12:00',
-        '12:00-13:00',
-        '13:00-14:00',
-        '14:00-15:00',
-        '15:00-16:00',
-        '16:00-17:00',
-        '17:00-18:00',
-        '18:00-19:00',
-        '19:00-20:00',
-        '20:00-21:00',
-        '21:00-22:00',
-    ];
 
     scheduleType = ['Oficina', 'Especial'] 
 
@@ -302,31 +202,22 @@ export class UbicationFormComponent implements OnInit, FormErros {
     ngOnInit(): void {
 
         if(this.ubication){
-            const {name, totalBecas, manager, isScheduleOffice, schedule, description, img} = this.ubication
-            const managerForm = {
-                fullName: manager.name,
-                ...manager
-            }
-            
+            const { name, totalBecas, manager,  description, img } = this.ubication
+
             this.ubicationForm.patchValue({
                 ubication: name,
                 becas: totalBecas,
-                manager: managerForm,
-                typeSchedule: isScheduleOffice ? this.scheduleType[0] : this.scheduleType[1],
-                schedule,
+                manager: {
+                    fullName: manager.name,
+                    ...manager
+                },
                 description,
                 photo: `${environment.apiUrlBase}${img}`
             })
 
-            if(!isScheduleOffice){
-                this.targetHours = schedule
-                this.sourceHours = this.sourceHours.filter(hour => !schedule.includes(hour))
-            }
-
             this.onFormChange.emit(this.ubicationForm.value)
 
             this.ubicationForm.get('becas').disable()
-            this.ubicationForm.get('typeSchedule').disable()
             this.ubicationForm.get('ubication').disable()
         }
 
@@ -334,8 +225,8 @@ export class UbicationFormComponent implements OnInit, FormErros {
             this.ubicationForm.get('becas').addAsyncValidators(this.assignBecasValidator as any)
         }
 
-        this.ubicationForm.valueChanges.pipe(debounceTime(900)).subscribe((value) => {
-            this.onFormChange.emit(value)
+        this.ubicationForm.valueChanges.pipe(debounceTime(1000)).subscribe((value) => {
+            this.onFormChange.emit({...value, photo: this.photoUbication, invalid: this.ubicationForm.invalid})
         })
 
         this.ubicationService.getManagerList().subscribe({
@@ -383,20 +274,6 @@ export class UbicationFormComponent implements OnInit, FormErros {
     }
 
     /**
-     * Funcion que determina si mostrar o no el picklist de horas
-     * @returns boolean si se muestra o no el picklist 
-     */
-    showPickHours(){
-        // si ando editando, no se podra modificar el horario.
-        if(this.ubication)
-            return false 
-        
-        // caso contratrio se obtiene si es horario de oficina o especial.
-        const value = this.ubicationForm.get('typeSchedule').value
-        return value === this.scheduleType[1]
-    }
-
-    /**
      * Funcion para obtener el estilo del input en el template
      */
     getInputStyle(control: string){
@@ -428,35 +305,6 @@ export class UbicationFormComponent implements OnInit, FormErros {
         reader.readAsDataURL(file)
     }
 
-    // Funcion para refrescar las horas de trabajo desde el picklist
-    refres() {
-        this.ubicationForm.get('schedule').setValue(this.targetHours)
-    }
-
-    // Funcion para setear las horas de trabajo dado el tipo de horario
-    setScheduleHours(event: any){
-        const {value} = event
-
-        // 0 = Oficina, 1 = Especial
-        if(value === this.scheduleType[0]){
-            this.ubicationForm.get('schedule').setValue([
-                '08:00-09:00',
-                '09:00-10:00',
-                '10:00-11:00',
-                '11:00-12:00',
-                '14:00-15:00',
-                '15:00-16:00',
-                '16:00-17:00',
-                '17:00-18:00',
-            ])
-        }
-
-        if(value === this.scheduleType[1]){
-            this.ubicationForm.get('schedule').setValue([])
-        }
-        
-    }
-
     //funcion para obtener el formato de la hora en el picklist am/pm
     getTimeFormat(hour: string){
         return Number(hour.slice(0,2)) < 12 ? 'a.m.' : 'p.m.'
@@ -470,17 +318,22 @@ export class UbicationFormComponent implements OnInit, FormErros {
 
         if(!this.ubication){
             this.registerNewUbication()
+            return
         }
 
         if(this.ubication){
             this.updatedUbication()
+            return
         }
 
        
     }
 
+    /**
+     * Funcion para registrar una nueva ubicacion
+     */
     registerNewUbication(){
-        const {ubication, becas, manager,typeSchedule, schedule, description} = this.ubicationForm.value
+        const {ubication, becas, manager, description} = this.ubicationForm.value
         
         const ubicationFormData = new FormData()
 
@@ -488,8 +341,6 @@ export class UbicationFormComponent implements OnInit, FormErros {
             ubication,
             becas,
             manager: manager.id,
-            typeSchedule,
-            schedule,
             description
         }))
 
@@ -499,6 +350,9 @@ export class UbicationFormComponent implements OnInit, FormErros {
     }
 
 
+    /**
+     * Funcion para actualizar la ubicacion
+     */
     updatedUbication(){
         const {description, manager} = this.ubicationForm.value
 
