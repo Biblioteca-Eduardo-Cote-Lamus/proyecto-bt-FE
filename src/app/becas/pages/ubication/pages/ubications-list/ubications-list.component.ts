@@ -9,11 +9,12 @@ import { UbicationInfoModalComponent } from '../../components/ubication-info-mod
 import { UbicationFormModalComponent } from '../../components/ubication-form/ubication-form-modal.component';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
+import { TypeSchedulePipe } from '../../pipes/typeSchedule.pipe';
 
 @Component({
     selector: 'app-ubications-list',
     standalone: true,
-    imports: [ButtonModule, TableModule, TooltipModule,NgClass, UbicationInfoModalComponent, UbicationFormModalComponent, ToastModule],
+    imports: [ButtonModule, TableModule, TooltipModule,NgClass, UbicationInfoModalComponent, UbicationFormModalComponent, ToastModule, TypeSchedulePipe],
     template: `
         <main class="pt-3 pr-5 lg:pl-5">
             <section  class="card flex justify-content-between align-items-center">
@@ -61,8 +62,8 @@ import { ToastModule } from 'primeng/toast';
                                   />
                                   {{ ubication[col].name }}
                                 } 
-                                @else if (col.includes('Office')) {
-                                  {{ ubication[col] ? 'Oficina': 'Diferente' }}
+                                @else if (col.includes('schedule')) {
+                                  {{ ubication[col].scheduleType | typeSchedule }}
                                 } @else {
                                   {{ ubication[col] }}
                                 }
@@ -126,7 +127,7 @@ export class UbicationsListComponent implements OnInit {
 
     viewModalTrigger = false;
 
-    ubicationModalTrigger = true;
+    ubicationModalTrigger = false;
 
     selectedUbication: Ubication | null | undefined 
 
@@ -152,7 +153,7 @@ export class UbicationsListComponent implements OnInit {
      * @returns string[] columns to show in the table 
      */
     getColumns() {
-        return ['ID','Ubicacion',  'Tipo horario', 'Becas asignados', 'Encargado',]
+        return ['ID','Ubicacion',  'Becas asignados', 'Encargado', 'Tipo de horario',]
     }
 
 

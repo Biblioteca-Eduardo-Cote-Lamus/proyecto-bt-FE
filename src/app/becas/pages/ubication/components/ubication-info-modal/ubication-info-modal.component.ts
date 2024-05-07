@@ -75,7 +75,7 @@ export class UbicationInfoModalComponent implements OnChanges{
     const {ubication} = changes
     if(ubication){
       const { schedule } = ubication.currentValue
-
+ 
       if(schedule)
         this.scheduleService.scheduleList = schedule
    

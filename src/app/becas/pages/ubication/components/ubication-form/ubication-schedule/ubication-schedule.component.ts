@@ -8,6 +8,9 @@ import { DropdownModule } from 'primeng/dropdown';
 import { ButtonModule } from 'primeng/button';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { MultiSelectModule } from 'primeng/multiselect';
+
+import { TYPES_SCHEDULE } from "../const/ubication-schedule.const";
 
 
 @Component({
@@ -22,6 +25,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
         ButtonModule,
         RadioButtonModule,
         InputNumberModule,
+        MultiSelectModule,
         FormsModule,
 
     ],
@@ -66,33 +70,38 @@ import { InputNumberModule } from 'primeng/inputnumber';
                         @if (day.available) {
                             <div class="p-fluid  px-3 flex flex-column justify-content-center align-items-center">
                                 @for (hour of day.hours; track $index) {
-                                    <div class=" mb-4 flex  justify-content-center align-items-center gap-3">
-                                        <p-dropdown 
-                                            [options]="getAvailableHours()" 
-                                            [(ngModel)]="hour.start" 
-                                            placeholder="Hora inicio" 
-                                            (onChange)="checkHour(day)"
-                                            [ngClass]="{'ng-dirty ng-invalid': !hour.valid}"/>
-                                        
-                                        <span> a </span>
-                                        
-                                        <p-dropdown 
-                                            [options]="getAvailableHours()" 
-                                            [(ngModel)]="hour.end" 
-                                            placeholder="Hora inicio"
-                                            (onChange)="checkHour(day)" 
-                                            [ngClass]="{'ng-dirty ng-invalid': !hour.valid}"/>
-            
-                                        <span class="text-center">becas asignados</span>
-                                        <p-inputNumber 
-                                            [styleClass]="'w-6rem text-center'" 
-                                            [ngClass]="{'ng-dirty ng-invalid': !hour.valid}" 
-                                            [min]="1" 
-                                            (onInput)="checkBecas($event)"
-                                            [(ngModel)]="hour.becas"/>
-                                        @if($index > 0){
-                                            <p-button icon="pi pi-minus" [rounded]="true" [text]="true" severity="danger "></p-button>
-                                        }
+                                    <div class="flex">
+                                        <div class=" mb-4 flex  justify-content-center align-items-center gap-3">
+                                            <p-dropdown 
+                                                [options]="getAvailableHours()" 
+                                                [(ngModel)]="hour.start" 
+                                                placeholder="Hora inicio" 
+                                                (onChange)="checkHour(day)"
+                                                [ngClass]="{'ng-dirty ng-invalid': !hour.valid}"/>
+                                            
+                                            <span> a </span>
+                                            
+                                            <p-dropdown 
+                                                [options]="getAvailableHours()" 
+                                                [(ngModel)]="hour.end" 
+                                                placeholder="Hora inicio"
+                                                (onChange)="checkHour(day)" 
+                                                [ngClass]="{'ng-dirty ng-invalid': !hour.valid}"/>
+                
+                                            <span class="text-center">becas asignados</span>
+                                            <p-inputNumber 
+                                                [styleClass]="'w-6rem text-center'" 
+                                                [ngClass]="{'ng-dirty ng-invalid': !hour.valid}" 
+                                                [min]="1" 
+                                                (onInput)="checkBecas($event)"
+                                                [(ngModel)]="hour.becas"/>
+                                        </div>
+                                        <p-button 
+                                            icon="pi pi-minus" 
+                                            [rounded]="true" [text]="true" 
+                                            severity="danger" 
+                                            [ngClass]="{'opacity-0': $index == 0}" 
+                                            (onClick)="removeHour(day, hour)" />
                                     </div>
                                 }
                                 <div class="w-full p-fluid">
@@ -117,35 +126,42 @@ import { InputNumberModule } from 'primeng/inputnumber';
                     <span class="inline-block px-4 mb-3"> Lunes a Sabado </span>
                     <div class="p-fluid  px-3 flex flex-column justify-content-center align-items-center">
                         @for (hour of days[0].hours; track $index) {
-                            <div class=" mb-4 flex  justify-content-center align-items-center gap-3">
-                                <p-dropdown 
-                                    [options]="getAvailableHours()" 
-                                    [(ngModel)]="days[0].start" 
-                                    placeholder="Hora inicio" 
-                                    (onChange)="checkHour(days[0])"
-                                    [ngClass]="{'ng-invalid ng-dirty': !days[0].valid}"/>
-                                
-                                <span> a </span>
-                                
-                                <p-dropdown 
-                                    [options]="getAvailableHours()" 
-                                    [(ngModel)]="days[0].end" 
-                                    placeholder="Hora inicio"
-                                    (onChange)="checkHour(days[0])" 
-                                    [ngClass]="{'ng-invalid ng-dirty': !days[0].valid}"/>
+                            <div class="flex">
+                                <div class=" mb-4 flex  justify-content-center align-items-center gap-3">
+                                    <p-dropdown 
+                                        [options]="getAvailableHours()" 
+                                        [(ngModel)]="days[0].start" 
+                                        placeholder="Hora inicio" 
+                                        (onChange)="checkHour(days[0])"
+                                        [ngClass]="{'ng-invalid ng-dirty': !days[0].valid}"/>
+                                    
+                                    <span> a </span>
+                                    
+                                    <p-dropdown 
+                                        [options]="getAvailableHours()" 
+                                        [(ngModel)]="days[0].end" 
+                                        placeholder="Hora inicio"
+                                        (onChange)="checkHour(days[0])" 
+                                        [ngClass]="{'ng-invalid ng-dirty': !days[0].valid}"/>
+        
+                                    <span class="text-center">Becas asignados</span>
     
-                                <span class="text-center">Becas asignados</span>
-
-                                <p-inputNumber 
-                                        [styleClass]="'w-6rem text-center'" 
-                                        [ngClass]="{'ng-dirty ng-invalid': !hour.valid}" 
-                                        [min]="1" 
-                                        [(ngModel)]="hour.becas"/>
-                                @if($index > 0){
-                                    <p-button icon="pi pi-minus" [rounded]="true" [text]="true" severity="danger "></p-button>
-                                }
-    
+                                    <p-inputNumber 
+                                            [styleClass]="'w-6rem text-center'" 
+                                            [ngClass]="{'ng-dirty ng-invalid': !hour.valid}" 
+                                            [min]="1" 
+                                            [(ngModel)]="hour.becas"/>
+        
+                                </div>
+                                <p-button 
+                                    icon="pi pi-minus" 
+                                    [rounded]="true" [text]="true" 
+                                    severity="danger" 
+                                    [ngClass]="{'opacity-0': $index == 0}" 
+                                    (onClick)="removeHour(days[0], hour)" />
                             </div>
+                            
+                                        
                         }
                         <div class="w-full p-fluid">
                             <p-button 
@@ -162,7 +178,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
             }
 
 
-
+            <!-- personalizado -->
             @if (selectedTypeSchedule === typesSchedule[2]) {
                 @for (day of days; track $index) {
                     <div class="bg-gray-100 border-round p-2 mb-3">
@@ -173,37 +189,46 @@ import { InputNumberModule } from 'primeng/inputnumber';
                         </div>
                         <!-- horas -->
                         @if(day.available){
-                            <div class="p-fluid mb-3 px-3 flex flex-column justify-content-center align-items-center">
+                            <div class=" mb-3 px-3 flex flex-column justify-content-center align-items-center">
                                 @for (hour of day.hours; track $index) {
-                                    <div class=" mb-4 flex  justify-content-center align-items-center gap-3">
-                                        <p-dropdown 
-                                            [options]="getAvailableHours()" 
-                                            [(ngModel)]="hour.start" 
-                                            placeholder="Hora inicio" 
-                                            (onChange)="checkHour(day)"
-                                            [ngClass]="{'ng-invalid ng-dirty': !hour.valid}"/>
-                                        
-                                        <span> a </span>
-                                        
-                                        <p-dropdown 
-                                            [options]="getAvailableHours()" 
-                                            [(ngModel)]="hour.end" 
-                                            placeholder="Hora inicio"
-                                            (onChange)="checkHour(day)" 
-                                            [ngClass]="{'ng-invalid ng-dirty': !hour.valid}"/>
+                                    <div class="flex ">
+                                        <div class=" mb-4 flex  justify-content-center align-items-center gap-3 relative">
+                                            <p-dropdown 
+                                                [options]="getAvailableHours()" 
+                                                [(ngModel)]="hour.start" 
+                                                placeholder="Hora inicio" 
+                                                (onChange)="checkHour(day)"
+                                                [ngClass]="{'ng-invalid ng-dirty': !hour.valid}"/>
+                                            
+                                            <span> a </span>
+                                            
+                                            <p-dropdown 
+                                                [options]="getAvailableHours()" 
+                                                [(ngModel)]="hour.end" 
+                                                placeholder="Hora inicio"
+                                                (onChange)="checkHour(day)" 
+                                                [ngClass]="{'ng-invalid ng-dirty': !hour.valid}"/>
+    
+                                            <span>Asignar</span>
+                                            
+                                            <p-multiSelect 
+                                                [options]="becas" 
+                                                [(ngModel)]="hour.becas" 
+                                                optionLabel="name"
+                                                placeholder="Seleccionar beca"
+                                                
+                                                />
+    
+                                        </div>
 
-                                        <span>Becas asignados</span>
-
-                                        <p-inputNumber 
-                                            [styleClass]="'w-6rem text-center'" 
-                                            [ngClass]="{'ng-dirty ng-invalid': !hour.valid}" 
-                                            [min]="1" 
-                                            [(ngModel)]="hour.becas"/>
+                                        <p-button 
+                                            icon="pi pi-minus" 
+                                            [rounded]="true" [text]="true" 
+                                            severity="danger" 
+                                            [ngClass]="{'opacity-0': $index == 0}" 
+                                            (onClick)="removeHour(day, hour)" >
+                                        </p-button>
                                         
-                                            @if($index > 0){
-                                            <p-button icon="pi pi-minus" [rounded]="true" [text]="true" severity="danger "></p-button>
-                                        }
-
                                     </div>
                                 }
                                 <div class="w-full p-fluid">
@@ -240,12 +265,21 @@ export class UbicationScheduleComponent implements OnInit {
 
     // Variable para controlar los dias del horario
     days: any = []
+    // Variable para controlar los tipos de horario
     typesSchedule: any = []
+    // variable para controlar el tipo de horario seleccionado
     selectedTypeSchedule: any = null
+
+    // Variable para controlar las becas disponibles en caso de que se seleccione horario personalizado
+    becas : any = []
 
     ngOnInit(): void { 
         this.initTypesSchedule()
+        this.initBecas()
         this.initDaysValues()
+
+        // emitimos los dias para que el padre pueda obtener los valores
+        this.daysChange.emit({ scheduleType: this.selectedTypeSchedule, schedule: [...this.days]})
     }
 
 
@@ -285,16 +319,15 @@ export class UbicationScheduleComponent implements OnInit {
                 available: i == 0 ? true : false,
                 hours: [
                     {
-                        start: "6:00 AM",
-                        end: "7:00 AM",
+                        start: "06:00 AM",
+                        end: "07:00 AM",
                         valid: true,
                         becas : 0
                     }
                 ]
             }
         })
-        // emitimos los dias para que el padre pueda obtener los valores
-        this.daysChange.emit([...this.days])
+        
     }
 
     /**
@@ -302,20 +335,18 @@ export class UbicationScheduleComponent implements OnInit {
      */
     private initTypesSchedule(){
         this.typesSchedule = [
-            {
-                name: 'Unificado (excluye sabado)',
-                key: 'unifiedWithoutSaturday'
-            },
-            {
-                name: 'Unificado (incluye sabado)',
-                key: 'unifiedIncludingSaturday'
-            },
-            {
-                name: 'Personalizado',
-                key: 'custom'
-            }
+            ...TYPES_SCHEDULE
         ]
         this.selectedTypeSchedule = this.typesSchedule[0]
+    }
+
+    /**
+     * Inicializa las becas disponibles a partir del input becasAvailable
+     */
+    private initBecas(){
+        this.becas = Array.from({length: this.becasAvailable}, (_, i) => {
+            return { name: `Beca ${i + 1}` }
+        })
     }
 
     /**
@@ -346,7 +377,7 @@ export class UbicationScheduleComponent implements OnInit {
         })
 
         // emitimos los dias para que el padre pueda obtener los valores
-        this.daysChange.emit([...this.days])
+        this.daysChange.emit({ scheduleType: this.selectedTypeSchedule, schedule: [...this.days]})
     }
 
     /**
@@ -354,21 +385,21 @@ export class UbicationScheduleComponent implements OnInit {
      */
     getAvailableHours(){
         return [
-            '6:00 AM',
-            '7:00 AM',
-            '8:00 AM',
-            '9:00 AM',
+            '06:00 AM',
+            '07:00 AM',
+            '08:00 AM',
+            '09:00 AM',
             '10:00 AM',
             '11:00 AM',
             '12:00 PM',
-            '1:00 PM',
-            '2:00 PM',
-            '3:00 PM',
-            '4:00 PM',
-            '5:00 PM',
-            '6:00 PM',
-            '7:00 PM',
-            '8:00 PM',
+            '01:00 PM',
+            '02:00 PM',
+            '03:00 PM',
+            '04:00 PM',
+            '05:00 PM',
+            '06:00 PM',
+            '07:00 PM',
+            '08:00 PM',
         ]
     }
 
@@ -382,14 +413,28 @@ export class UbicationScheduleComponent implements OnInit {
             const start =hour.start.split(':')
             const end =hour.end.split(':')
 
-            const startNumber = start[1].includes('PM') ? parseInt(start[0]) + 12 : parseInt(start[0])
-            const endNumber = end[1].includes('PM') ? parseInt(end[0]) + 12 : parseInt(end[0])
+            let startNumber = 0
+            let endNumber = 0
 
+            if(start[0].includes('12'))
+                startNumber = parseInt(start[0])
+            else if(start[1].includes('PM'))
+                startNumber = parseInt(start[0]) + 12
+            else
+                startNumber = parseInt(start[0])
+
+            if(end[0].includes('12'))
+                endNumber = parseInt(end[0])
+            else if(end[1].includes('PM'))
+                endNumber = parseInt(end[0]) + 12
+            else
+                endNumber = parseInt(end[0])
+            
             hour.valid = startNumber < endNumber
         })
 
         // emitimos los dias para que el padre pueda obtener los valores
-        this.daysChange.emit([...this.days])
+        this.daysChange.emit({ scheduleType: this.selectedTypeSchedule, schedule: [...this.days]})
     }
 
     /**
@@ -397,7 +442,7 @@ export class UbicationScheduleComponent implements OnInit {
      */
     changeTypeSchedule(){
         this.initDaysValues()
-        this.daysChange.emit([...this.days])
+        this.daysChange.emit({ scheduleType: this.selectedTypeSchedule, schedule: [...this.days]})
     }
 
     /**
@@ -405,7 +450,25 @@ export class UbicationScheduleComponent implements OnInit {
      * @param event evento de cambio de becas apatir del input number
      */
     checkBecas(event: any){
+        if(event.value === null) return 
+
         this.becasAvailable -= parseInt(event.value) 
+    }
+
+    /**
+     * Elimina una hora de un dia
+     * @param day dia al que se le eliminara la hora
+     * @param hour hora que se eliminara
+     */    
+    removeHour(day: any, hour: any){
+        // si solo hay una hora no se puede eliminar
+        if(day.hours.length === 1){ return }
+
+        // eliminamos la hora en caso contrario
+        day.hours = day.hours.filter((h: any) => h !== hour)
+
+        // emitiendo los dias para que el padre pueda obtener los valores
+        this.daysChange.emit([...this.days])
     }
 
 }

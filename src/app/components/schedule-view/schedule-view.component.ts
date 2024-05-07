@@ -2,6 +2,7 @@ import { JsonPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, Input, OnChanges, OnInit } from '@angular/core';
 import { TableModule } from 'primeng/table';
 import { ScheduleService } from './schedule.service';
+import { TYPES_SCHEDULE_KEYS } from '../../becas/pages/ubication/components/ubication-form/const/ubication-schedule.const'
 
 @Component({
     selector: 'app-schedule-view',
@@ -38,15 +39,22 @@ import { ScheduleService } from './schedule.service';
                 <tr>
                     <td>{{ time }}</td>
                     @for (day of columns; track $i) { 
-                      @if(schedule().includes(time)  ) {
-                        <td class="">
-                            <span class="time-card inline-block p-2 w-4rem border-round bg-green-400 text-white transition-transform transition-duration-150 hover:shadow-1">
-                                <i class="pi pi-check"></i>
-                            </span>
-                        </td>
-                      }@else {
-                        <td>.</td>
-                      } 
+                        @if(isUnficatedSchedule ){
+                            @if(schedule()[0].days.includes(day.toLowerCase()) && schedule()[0].hours.includes(time)){
+                                <td class="">
+                                    <span class="time-card inline-block p-2 w-4rem border-round bg-green-400 text-white transition-transform transition-duration-150 hover:shadow-1">
+                                        <i class="pi pi-check"></i>
+                                </span>
+                            } @else if (schedule()[1].days.includes(day.toLowerCase()) && schedule()[1].hours.includes(time)){
+                                <td class="">
+                                    <span class="time-card inline-block p-2 w-4rem border-round bg-green-400 text-white transition-transform transition-duration-150 hover:shadow-1">
+                                        <i class="pi pi-check"></i>
+                                </span>
+                            } @else {
+                                <td>.</td>
+                            }
+                        }
+
                     }
                 </tr>
             </ng-template>
@@ -63,11 +71,26 @@ import { ScheduleService } from './schedule.service';
   `,
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ScheduleViewComponent {
+export class ScheduleViewComponent implements OnInit{
     
-    schedule = computed(() => this.scheduleService.scheduleFormat)
+    schedule = computed(() => {
+        if(this.scheduleService.scheduleFormat === null ) return []
+        if(!this.scheduleService.scheduleFormat) return []
+
+        return this.scheduleService.scheduleFormat.schedule.map(({days, hours}) => {
+            return {
+                days,
+                hours: hours.map(({start, end}) => this.getHoursBetween(start, end)).flat()
+            }
+        }).flat()
+    })
 
     constructor(private scheduleService: ScheduleService) {}
+
+    ngOnInit(): void {
+        console.log(this.schedule());
+        
+    }
 
     get colDays() {
         return ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
@@ -92,5 +115,39 @@ export class ScheduleViewComponent {
             '20:00-21:00',
             '21:00-22:00',
         ];
+    }
+
+    get isUnficatedSchedule(){
+        return this.scheduleService.scheduleFormat?.scheduleType === TYPES_SCHEDULE_KEYS.unifiedIncludingSaturday || this.scheduleService.scheduleFormat?.scheduleType === TYPES_SCHEDULE_KEYS.unifiedWithoutSaturday 
+    }
+    
+    private getHoursBetween(start: string, end: string) {
+        
+        // obtenemos los array donde 0 es la hora y 1 es el formato AM o PM y los trasformamos a numeros
+        const startValues = start.split(' ')
+        const endValues = end.split(' ')
+
+        if (startValues[1] === 'PM') {
+            // validamos que no sean las 12
+            if(!startValues[0].includes('12')){
+                startValues[0] = (parseInt(startValues[0]) + 12).toString().concat(':00')
+            }
+        }
+
+        if (endValues[1] === 'PM') {
+            // validamos que no sean las 12
+            if(!endValues[0].includes('12')){
+                endValues[0] = (parseInt(endValues[0]) + 12).toString().concat(':00')
+            }
+        }
+
+        // encontramos los indeces y generamos el slice
+        const startIndex = this.colTimes.findIndex(time => time.startsWith(startValues[0]))
+        const endIndex = this.colTimes.findIndex(time => time.startsWith(endValues[0]))
+
+
+        return this.colTimes.slice(startIndex, endIndex)
+
+        
     }
 }

@@ -17,6 +17,7 @@ import { UbicationService } from '../../pages/services/ubication.service';
 import { UbicationFormComponent } from './ubication-form.component';
 import { TabViewModule } from 'primeng/tabview';
 import { UbicationScheduleComponent } from './ubication-schedule/ubication-schedule.component';
+import { TYPES_SCHEDULE_KEYS } from './const/ubication-schedule.const'
 
 @Component({
     selector: 'app-ubication-form-modal',
@@ -36,7 +37,7 @@ import { UbicationScheduleComponent } from './ubication-schedule/ubication-sched
             [(visible)]="visible"
             [modal]="true"
             maskStyle="backdrop-filter: blur(2px);"
-            [style]="{ width: '90%', maxWidth: '630px', margin: 'auto' , boxShadow: 'none', overflow: 'auto' }"
+            [style]="{ width: '90%', maxWidth: '750px', margin: 'auto' , boxShadow: 'none', overflow: 'auto' }"
             [draggable]="false"
             [resizable]="false"
             header="Informacion detallada"
@@ -46,7 +47,7 @@ import { UbicationScheduleComponent } from './ubication-schedule/ubication-sched
                 <div class="bg-white border-round p-2 h-full">
                     <p-tabView [activeIndex]="0"> 
                         <p-tabPanel header="Información">
-                            <app-ubication-form (onSubmit)="submit($event)"  [ubication]="ubication" (onFormChange)="saveForm($event)" />
+                            <app-ubication-form  [ubication]="ubication" (onFormChange)="saveForm($event)" />
                         </p-tabPanel>
                         <p-tabPanel header="Horario">
                             <ng-template pTemplate="content">
@@ -62,6 +63,7 @@ import { UbicationScheduleComponent } from './ubication-schedule/ubication-sched
                     [outlined]="true" 
                     severity="secondary" 
                     [disabled]="ubicationFormValue.invalid || !schedule.valid"
+                    (onClick)="submit()"
                 />
                 <p-button 
                     label="Cancelar" 
@@ -116,14 +118,6 @@ export class UbicationFormModalComponent implements Modal {
         this.visibleChange.emit(false)
         this.ubicationChange.emit(null)
     }
-    
-    /**
-     * Funcion para enviar el formulario
-     */
-    submit(event:any){
-        this.onSubmit.emit(event)
-        this.onClose() 
-    }
 
     /**
      * Funcion para guardar los valores del formulario
@@ -131,18 +125,136 @@ export class UbicationFormModalComponent implements Modal {
      */
     saveForm(event:any){
         this.ubicationFormValue = event
-        console.log(this.ubicationFormValue);
-        
     }
 
+    /**
+     * Funcion para guardar el horario
+     * @param event Evento que se dispara al cambiar los valores del horario desde el componente ubicationSchedule
+     */
     setSchedule(event:any){
+
+        // si cambia el tipo de horario, se reinicia 
+        if(this.schedule.scheduleType !== event.scheduleType){
+            this.schedule = {
+                schedule: [],
+                valid: false,
+                scheduleType: event.scheduleType   
+            }
+            return
+        }
+
+        // sino, se actualiza el horario
         this.schedule = {
-            schedule: event,
+            ...event,
             valid: false,
         }
+
         // verificar si alguna de las horas en los dias es invalida
         this.schedule.valid = this.schedule.schedule.every((day:any) => day.hours.every((hour:any) => hour.valid))        
     }
+
+        
+    /**
+     * Funcion para enviar el formulario
+     */
+    submit(){
+        const data = this.transformUbicationFormValue()
+
+        // Determinamos si estamos creando o actualizando una ubicacion
+        // if(this.ubication){
+        //     this.onSubmit.emit({action: 'add', data})
+        // }else {
+        //     this.onSubmit.emit({action: 'update', data})
+        // } 
+
+        // this.onClose() 
+    }
+
+
+    /**
+     * Funcion para crear el formdata a partir de los valores del formulario y enviarlo al backend
+     */
+    private transformUbicationFormValue() {
+        // campos requeridos por el backend: ['ubication', 'becas', 'manager', 'typeSchedule', 'schedule', 'description']
+        
+        // desestructurar los valores del formulario
+        const { ubication, becas, manager, photo, description } = this.ubicationFormValue
+
+        //transformar el horario apartir del tipo
+        const schedule = this.transformSchedule()
+
+        // contruir el FormData para enviarlo al backend
+        const formData = new FormData()
+
+        // contruir el objeto con los datos del formulario
+        const data = {
+            ubication,
+            becas,
+            manager: manager.id,
+            photo,
+            description,
+            schedule,
+        }
+
+        // agregamos los datos al formulario 
+        formData.append('ubication', JSON.stringify(data))
+        formData.append('photo', photo as Blob)
+
+        // retornamos el formData 
+        return formData
+    }
+
+    /**
+     * Transforma el horario segun el tipo de horario
+     * @returns el horario formateado segun el tipo de horario
+     */
+    private transformSchedule(){
+
+        // extraemos el key del tipo de horario y el horario
+        const {key} = this.schedule.scheduleType
+        const {schedule} = this.schedule
+
+        // Si es unificado sin sabado, se devolver un array de 2 posiciones, el primero corresponde a lahorario de lunes a viernes y el segundo a sabado
+        if(key === TYPES_SCHEDULE_KEYS.unifiedWithoutSaturday) {
+            
+            return {
+                scheduleType: key,
+                schedule: [
+                    {
+                        days: ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'],
+                        hours: schedule[0].hours
+                    },
+                    {
+                        days: ['sabado'],
+                        hours: schedule[5].hours
+                    }
+                ]
+            }
+
+        }
+
+        // Si es unificado con sabado, se devolver un array de 1 posicion, el cual corresponde al horario de lunes a sabado
+        if(key === TYPES_SCHEDULE_KEYS.unifiedIncludingSaturday){
+            return {
+                scheduleType: key,
+                schedule: [
+                    {
+                        days: ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'],
+                        hours: schedule[0].hours
+                    }
+                ]
+                
+            }
+        }
+
+        // Si es personalizado, se devolvera el horario tal cual
+        return {
+            scheduleType: key,
+            schedule
+        }
+        
+    }
+
 
 
 }
