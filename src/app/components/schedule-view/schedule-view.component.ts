@@ -1,8 +1,8 @@
 import { JsonPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, Input, OnChanges, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
 import { TableModule } from 'primeng/table';
 import { ScheduleService } from './schedule.service';
-import { TYPES_SCHEDULE_KEYS } from '../../becas/pages/ubication/components/ubication-form/const/ubication-schedule.const'
+import { UbicationSchedule } from 'src/app/becas/pages/ubication/api';
 
 @Component({
     selector: 'app-schedule-view',
@@ -35,27 +35,33 @@ import { TYPES_SCHEDULE_KEYS } from '../../becas/pages/ubication/components/ubic
                     }
                 </tr>
             </ng-template>
-            <ng-template pTemplate="body" let-time let-columns="columns">
+            <ng-template pTemplate="body" let-time let-columns="columns" let-i="rowIndex">
                 <tr>
-                    <td>{{ time }}</td>
-                    @for (day of columns; track $i) { 
-                        @if(isUnficatedSchedule ){
-                            @if(schedule()[0].days.includes(day.toLowerCase()) && schedule()[0].hours.includes(time)){
-                                <td class="">
-                                    <span class="time-card inline-block p-2 w-4rem border-round bg-green-400 text-white transition-transform transition-duration-150 hover:shadow-1">
-                                        <i class="pi pi-check"></i>
+                    <td>{{ time }} {{i}}</td>
+                    @for (day of columns; track $index) {
+                        @if (schedule()[i][$index] === 1) {
+                            <td class="">
+                                <span class="time-card inline-block p-2 w-4rem border-round bg-green-400 text-white transition-transform transition-duration-150 hover:shadow-1">
+                                    <i class="pi pi-check"></i>
                                 </span>
-                            } @else if (schedule()[1].days.includes(day.toLowerCase()) && schedule()[1].hours.includes(time)){
-                                <td class="">
-                                    <span class="time-card inline-block p-2 w-4rem border-round bg-green-400 text-white transition-transform transition-duration-150 hover:shadow-1">
-                                        <i class="pi pi-check"></i>
+                            </td>
+                        } @else {
+                            <td>.</td>
+                        }
+                    }
+                    <!-- @for (day of columns; track $i) { 
+
+                        @if(markHour(day, time)){
+                            <td class="">
+                                <span class="time-card inline-block p-2 w-4rem border-round bg-green-400 text-white transition-transform transition-duration-150 hover:shadow-1">
+                                    <i class="pi pi-check"></i>
                                 </span>
-                            } @else {
-                                <td>.</td>
-                            }
+                            </td>
+                        } @else {
+                            <td>.</td>
                         }
 
-                    }
+                    } -->
                 </tr>
             </ng-template>
         </p-table>
@@ -71,26 +77,16 @@ import { TYPES_SCHEDULE_KEYS } from '../../becas/pages/ubication/components/ubic
   `,
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ScheduleViewComponent implements OnInit{
+export class ScheduleViewComponent {
     
     schedule = computed(() => {
         if(this.scheduleService.scheduleFormat === null ) return []
         if(!this.scheduleService.scheduleFormat) return []
 
-        return this.scheduleService.scheduleFormat.schedule.map(({days, hours}) => {
-            return {
-                days,
-                hours: hours.map(({start, end}) => this.getHoursBetween(start, end)).flat()
-            }
-        }).flat()
+        return this.transformSchedule(this.scheduleService.scheduleFormat)
     })
 
     constructor(private scheduleService: ScheduleService) {}
-
-    ngOnInit(): void {
-        console.log(this.schedule());
-        
-    }
 
     get colDays() {
         return ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
@@ -117,37 +113,23 @@ export class ScheduleViewComponent implements OnInit{
         ];
     }
 
-    get isUnficatedSchedule(){
-        return this.scheduleService.scheduleFormat?.scheduleType === TYPES_SCHEDULE_KEYS.unifiedIncludingSaturday || this.scheduleService.scheduleFormat?.scheduleType === TYPES_SCHEDULE_KEYS.unifiedWithoutSaturday 
-    }
-    
-    private getHoursBetween(start: string, end: string) {
+    /**
+     * Funcion que transforma el horario de la ubicacion a una matriz de 6x16 correspondiente a los dias y horas de la semana del horario de la ubicacion
+     * @param schedule hoario de la ubicacion
+     * @returns matriz correspondiente a las horas y dias donde se ubicara a una persona 
+     */
+    private transformSchedule(schedule:UbicationSchedule): number[][]{
+        const daysInSchedule = new Set(schedule.schedule.flatMap(item => item.days));
         
-        // obtenemos los array donde 0 es la hora y 1 es el formato AM o PM y los trasformamos a numeros
-        const startValues = start.split(' ')
-        const endValues = end.split(' ')
-
-        if (startValues[1] === 'PM') {
-            // validamos que no sean las 12
-            if(!startValues[0].includes('12')){
-                startValues[0] = (parseInt(startValues[0]) + 12).toString().concat(':00')
-            }
-        }
-
-        if (endValues[1] === 'PM') {
-            // validamos que no sean las 12
-            if(!endValues[0].includes('12')){
-                endValues[0] = (parseInt(endValues[0]) + 12).toString().concat(':00')
-            }
-        }
-
-        // encontramos los indeces y generamos el slice
-        const startIndex = this.colTimes.findIndex(time => time.startsWith(startValues[0]))
-        const endIndex = this.colTimes.findIndex(time => time.startsWith(endValues[0]))
-
-
-        return this.colTimes.slice(startIndex, endIndex)
-
-        
+        const finalSchedule = this.colTimes.map(hour => {
+            return this.colDays.map(day => {
+              const index = schedule.schedule.findIndex(item => item.days.includes(day.toLowerCase()));
+              return daysInSchedule.has(day.toLowerCase())
+                ? schedule.schedule_format[index].includes(hour) ? 1 : 0
+                : 0;
+            });
+          });
+        return finalSchedule
     }
+
 }

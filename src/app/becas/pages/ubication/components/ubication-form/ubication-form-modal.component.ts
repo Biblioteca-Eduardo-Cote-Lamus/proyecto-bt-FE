@@ -159,7 +159,8 @@ export class UbicationFormModalComponent implements Modal {
      */
     submit(){
         const data = this.transformUbicationFormValue()
-
+    
+    
         // Determinamos si estamos creando o actualizando una ubicacion
         // if(this.ubication){
         //     this.onSubmit.emit({action: 'add', data})
@@ -216,20 +217,26 @@ export class UbicationFormModalComponent implements Modal {
 
         // Si es unificado sin sabado, se devolver un array de 2 posiciones, el primero corresponde a lahorario de lunes a viernes y el segundo a sabado
         if(key === TYPES_SCHEDULE_KEYS.unifiedWithoutSaturday) {
-            
-            return {
+
+            const res = {
                 scheduleType: key,
                 schedule: [
                     {
                         days: ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'],
                         hours: schedule[0].hours
                     },
-                    {
-                        days: ['sabado'],
-                        hours: schedule[5].hours
-                    }
                 ]
             }
+
+            // si sabado esta disponible, se agrega al horario
+            if(schedule[5].available){
+                res.schedule.push({
+                    days: ['sabado'],
+                    hours: schedule[5].hours
+                })
+            }
+            
+            return res
 
         }
 
@@ -243,14 +250,16 @@ export class UbicationFormModalComponent implements Modal {
                         hours: schedule[0].hours
                     }
                 ]
-                
             }
         }
 
         // Si es personalizado, se devolvera el horario tal cual
         return {
             scheduleType: key,
-            schedule
+            schedule: schedule.filter((day:any) => day.available).map((day:any) => ({
+                days: [day.name],
+                hours: day.hours
+            }))
         }
         
     }
