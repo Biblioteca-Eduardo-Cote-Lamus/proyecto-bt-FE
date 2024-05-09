@@ -9,11 +9,12 @@ import { UbicationInfoModalComponent } from '../../components/ubication-info-mod
 import { UbicationFormModalComponent } from '../../components/ubication-form/ubication-form-modal.component';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
+import { TypeSchedulePipe } from '../../pipes/typeSchedule.pipe';
 
 @Component({
     selector: 'app-ubications-list',
     standalone: true,
-    imports: [ButtonModule, TableModule, TooltipModule,NgClass, UbicationInfoModalComponent, UbicationFormModalComponent, ToastModule],
+    imports: [ButtonModule, TableModule, TooltipModule,NgClass, UbicationInfoModalComponent, UbicationFormModalComponent, ToastModule, TypeSchedulePipe],
     template: `
         <main class="pt-3 pr-5 lg:pl-5">
             <section  class="card flex justify-content-between align-items-center">
@@ -61,8 +62,8 @@ import { ToastModule } from 'primeng/toast';
                                   />
                                   {{ ubication[col].name }}
                                 } 
-                                @else if (col.includes('Office')) {
-                                  {{ ubication[col] ? 'Oficina': 'Diferente' }}
+                                @else if (col.includes('schedule')) {
+                                  {{ ubication[col].scheduleType | typeSchedule }}
                                 } @else {
                                   {{ ubication[col] }}
                                 }
@@ -79,7 +80,7 @@ import { ToastModule } from 'primeng/toast';
                                   (onClick)="openViewModal(ubication)"
                               >
                               </p-button>
-                              <p-button
+                              <!-- <p-button
                                   icon="pi pi-pencil"
                                   severity="warning"
                                   [rounded]="true"
@@ -88,7 +89,7 @@ import { ToastModule } from 'primeng/toast';
                                   tooltipPosition="top"
                                   (onClick)="selectedUbication = ubication; ubicationModalTrigger = true"
                               >
-                              </p-button>
+                              </p-button> -->
                           </td>
                       </tr>
                   </ng-template>
@@ -98,7 +99,7 @@ import { ToastModule } from 'primeng/toast';
             <app-ubication-info [(visible)]="viewModalTrigger" [(ubication)]="selectedUbication" />
           }
           @if(ubicationModalTrigger){
-            <app-ubication-form-modal [(visible)]="ubicationModalTrigger" (onSubmit)="sendForm($event)" [(ubication)]="selectedUbication" />
+            <app-ubication-form-modal [(visible)]="ubicationModalTrigger"  [(ubication)]="selectedUbication" />
           }
           <p-toast />
         </main>
@@ -152,7 +153,7 @@ export class UbicationsListComponent implements OnInit {
      * @returns string[] columns to show in the table 
      */
     getColumns() {
-        return ['ID','Ubicacion',  'Tipo horario', 'Becas asignados', 'Encargado',]
+        return ['ID','Ubicacion',  'Becas asignados', 'Encargado', 'Tipo de horario',]
     }
 
 
@@ -165,56 +166,4 @@ export class UbicationsListComponent implements OnInit {
       this.selectedUbication=ubication
     }
 
-    /**
-     * Send the form to register the ubication
-     * @param event: formdata to send to the service
-     */
-    sendForm(event: any) {
-
-      if(event.action === 'add'){
-        this.ubicationService.registerUbication(event.data).subscribe({
-          next: (res) => {
-            this.messageService.clear()
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Ubicacion registrada',
-              detail: 'Ubicacion registrada con exito'
-            })
-            this.getUbications()  
-          },
-          error: (err) => {          
-            this.messageService.clear()
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error al registrar',
-              detail: `${err.error.message}`
-            })
-          }
-        })
-        return
-      }
-
-      if(event.action === 'update'){
-        this.ubicationService.updatedUbication(event.data).subscribe({
-          next: (res) => {
-            this.messageService.clear()
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Actualizacion exitosa',
-              detail: 'Ubicacion actualizada con exito'
-            })
-            this.getUbications()  
-          },
-          error: (err) => {          
-            this.messageService.clear()
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error al actualizar',
-              detail: `${err.error.message}`
-            })
-          }
-        })
-        return
-      }
-    }
 }
