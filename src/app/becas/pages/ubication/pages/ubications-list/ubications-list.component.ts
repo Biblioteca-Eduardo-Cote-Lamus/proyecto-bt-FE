@@ -80,7 +80,7 @@ import { TypeSchedulePipe } from '../../pipes/typeSchedule.pipe';
                                   (onClick)="openViewModal(ubication)"
                               >
                               </p-button>
-                              <p-button
+                              <!-- <p-button
                                   icon="pi pi-pencil"
                                   severity="warning"
                                   [rounded]="true"
@@ -89,7 +89,7 @@ import { TypeSchedulePipe } from '../../pipes/typeSchedule.pipe';
                                   tooltipPosition="top"
                                   (onClick)="selectedUbication = ubication; ubicationModalTrigger = true"
                               >
-                              </p-button>
+                              </p-button> -->
                           </td>
                       </tr>
                   </ng-template>
@@ -99,7 +99,7 @@ import { TypeSchedulePipe } from '../../pipes/typeSchedule.pipe';
             <app-ubication-info [(visible)]="viewModalTrigger" [(ubication)]="selectedUbication" />
           }
           @if(ubicationModalTrigger){
-            <app-ubication-form-modal [(visible)]="ubicationModalTrigger" (onSubmit)="sendForm($event)" [(ubication)]="selectedUbication" />
+            <app-ubication-form-modal [(visible)]="ubicationModalTrigger"  [(ubication)]="selectedUbication" />
           }
           <p-toast />
         </main>
@@ -166,56 +166,4 @@ export class UbicationsListComponent implements OnInit {
       this.selectedUbication=ubication
     }
 
-    /**
-     * Send the form to register the ubication
-     * @param event: formdata to send to the service
-     */
-    sendForm(event: any) {
-
-      if(event.action === 'add'){
-        this.ubicationService.registerUbication(event.data).subscribe({
-          next: (res) => {
-            this.messageService.clear()
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Ubicacion registrada',
-              detail: 'Ubicacion registrada con exito'
-            })
-            this.getUbications()  
-          },
-          error: (err) => {          
-            this.messageService.clear()
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error al registrar',
-              detail: `${err.error.message}`
-            })
-          }
-        })
-        return
-      }
-
-      if(event.action === 'update'){
-        this.ubicationService.updatedUbication(event.data).subscribe({
-          next: (res) => {
-            this.messageService.clear()
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Actualizacion exitosa',
-              detail: 'Ubicacion actualizada con exito'
-            })
-            this.getUbications()  
-          },
-          error: (err) => {          
-            this.messageService.clear()
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error al actualizar',
-              detail: `${err.error.message}`
-            })
-          }
-        })
-        return
-      }
-    }
 }

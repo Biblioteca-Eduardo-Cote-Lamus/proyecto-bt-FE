@@ -10,7 +10,8 @@ import { RadioButtonModule } from 'primeng/radiobutton';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { MultiSelectModule } from 'primeng/multiselect';
 
-import { TYPES_SCHEDULE } from "../const/ubication-schedule.const";
+import { TYPES_SCHEDULE, TYPES_SCHEDULE_KEYS } from "../const/ubication-schedule.const";
+import { UbicationSchedule } from '../../../api';
 
 
 @Component({
@@ -61,7 +62,7 @@ import { TYPES_SCHEDULE } from "../const/ubication-schedule.const";
 
             <!-- unificado  excluyendo el sabado -->
             @if(selectedTypeSchedule ===  typesSchedule[0]){
-                @for (day of [ days[0], days[5] ]; track $index) {
+                @for (day of getSchedules(); track $index) {
                     <div class="bg-gray-100 border-round py-4 mb-3">
                         <div class="flex align-items-center gap-3 mb-3 px-3 ">
                             <p-inputSwitch [(ngModel)]="day.available" ></p-inputSwitch>
@@ -261,6 +262,7 @@ import { TYPES_SCHEDULE } from "../const/ubication-schedule.const";
 export class UbicationScheduleComponent implements OnInit {
 
     @Input() becasAvailable = 0
+    @Input() schedule: UbicationSchedule = null
     @Output() daysChange = new EventEmitter()
 
     // Variable para controlar los dias del horario
@@ -274,12 +276,84 @@ export class UbicationScheduleComponent implements OnInit {
     becas : any = []
 
     ngOnInit(): void { 
+
+        if(this.schedule){
+            this.setScheduleValues()
+            // emitimos los dias para que el padre pueda obtener los valores
+            this.daysChange.emit({ scheduleType: this.selectedTypeSchedule, schedule: [...this.days]})
+            return
+        }
         this.initTypesSchedule()
         this.initBecas()
         this.initDaysValues()
 
         // emitimos los dias para que el padre pueda obtener los valores
         this.daysChange.emit({ scheduleType: this.selectedTypeSchedule, schedule: [...this.days]})
+    }
+
+    /**
+     * Inicializa los valores del horario en caso de qeu se envie uno, es decir, se esta editando
+     */
+    private setScheduleValues(){
+        
+        if(this.schedule.scheduleType === TYPES_SCHEDULE_KEYS.unifiedWithoutSaturday) {
+            // solo se debe iniciarlizar el valor del lunes y sabado. El sabado solo si fue seleccionado   
+            this.days = this.schedule.schedule.map( horario => ({
+                name: horario.days[0],
+                available: true,
+                hours: horario.hours
+            }));
+
+            if(this.days.length === 1) {
+                this.days.push({
+                    name: 'Sabado',
+                    available: false,
+                    hours: {
+                        start: '06:00 AM',
+                        end: '07:00 AM',
+                        valid: true,
+                        becas: 0
+                    }
+                })
+            }
+            
+        }
+
+        if(this.schedule.scheduleType === TYPES_SCHEDULE_KEYS.unifiedIncludingSaturday ){
+            this.days = this.schedule.schedule.map( horario => ({
+                name: horario.days[0],
+                available: true,
+                hours: horario.hours
+            }));
+        }
+
+        if(this.schedule.scheduleType === TYPES_SCHEDULE_KEYS.custom){
+            // si es custom, se inicializa el valor de los dias y despues se maneja el valor de las becas
+            this.initDaysValues()
+            this.days = this.days.map( day => {
+                const horario = this.schedule.schedule.find( h => h.days[0].toLowerCase() === day.name.toLowerCase())
+                if (horario){
+                    return {
+                        ...day,
+                        available: true,
+                        hours: horario.hours
+                    }
+                }
+                return day
+            })            
+        }
+
+        this.initTypesSchedule()
+        this.initBecas()
+        this.selectedTypeSchedule = TYPES_SCHEDULE.find( t => t.key === this.schedule.scheduleType)
+
+    }
+
+    getSchedules(){
+        if(this.schedule){
+            return [...this.days]
+        }
+        return [this.days[0], this.days[5]]
     }
 
 

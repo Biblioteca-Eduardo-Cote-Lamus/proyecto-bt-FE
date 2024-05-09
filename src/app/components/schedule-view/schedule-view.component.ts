@@ -37,7 +37,7 @@ import { UbicationSchedule } from 'src/app/becas/pages/ubication/api';
             </ng-template>
             <ng-template pTemplate="body" let-time let-columns="columns" let-i="rowIndex">
                 <tr>
-                    <td>{{ time }} {{i}}</td>
+                    <td>{{ time }}</td>
                     @for (day of columns; track $index) {
                         @if (schedule()[i][$index] === 1) {
                             <td class="">
@@ -49,19 +49,6 @@ import { UbicationSchedule } from 'src/app/becas/pages/ubication/api';
                             <td>.</td>
                         }
                     }
-                    <!-- @for (day of columns; track $i) { 
-
-                        @if(markHour(day, time)){
-                            <td class="">
-                                <span class="time-card inline-block p-2 w-4rem border-round bg-green-400 text-white transition-transform transition-duration-150 hover:shadow-1">
-                                    <i class="pi pi-check"></i>
-                                </span>
-                            </td>
-                        } @else {
-                            <td>.</td>
-                        }
-
-                    } -->
                 </tr>
             </ng-template>
         </p-table>

@@ -18,6 +18,8 @@ import { UbicationFormComponent } from './ubication-form.component';
 import { TabViewModule } from 'primeng/tabview';
 import { UbicationScheduleComponent } from './ubication-schedule/ubication-schedule.component';
 import { TYPES_SCHEDULE_KEYS } from './const/ubication-schedule.const'
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
 
 @Component({
     selector: 'app-ubication-form-modal',
@@ -30,6 +32,7 @@ import { TYPES_SCHEDULE_KEYS } from './const/ubication-schedule.const'
         UbicationScheduleComponent,
         ReactiveFormsModule,
         TabViewModule,
+        ToastModule,
         NgClass,
     ],
     template: `
@@ -51,7 +54,7 @@ import { TYPES_SCHEDULE_KEYS } from './const/ubication-schedule.const'
                         </p-tabPanel>
                         <p-tabPanel header="Horario">
                             <ng-template pTemplate="content">
-                                <app-ubication-schedule [becasAvailable]="ubicationFormValue?.becas || 0" (daysChange)="setSchedule($event)" />
+                                <app-ubication-schedule [schedule]="ubication.schedule" [becasAvailable]="ubicationFormValue?.becas || 0" (daysChange)="setSchedule($event)" />
                             </ng-template>
                         </p-tabPanel>    
                     </p-tabView>
@@ -72,6 +75,7 @@ import { TYPES_SCHEDULE_KEYS } from './const/ubication-schedule.const'
                     (click)="visible = false" />
         </ng-template>
         </p-dialog>
+        <p-toast />
     `,
     styles: `
         .conta{
@@ -81,6 +85,7 @@ import { TYPES_SCHEDULE_KEYS } from './const/ubication-schedule.const'
         }
     `,
     changeDetection: ChangeDetectionStrategy.OnPush,
+    providers: [MessageService]
 })
 export class UbicationFormModalComponent implements Modal {
 
@@ -88,7 +93,6 @@ export class UbicationFormModalComponent implements Modal {
     @Output() visibleChange: EventEmitter<boolean> = new EventEmitter();
     @Input() ubication: Ubication | null | undefined;
     @Output() ubicationChange = new EventEmitter();
-    @Output() onSubmit = new EventEmitter();
 
     ubicationFormValue: any = {
         invalid: true
@@ -99,7 +103,7 @@ export class UbicationFormModalComponent implements Modal {
         valid: false,
     }
 
-    constructor(private fb: FormBuilder, private ubicationService: UbicationService) {}
+    constructor(private fb: FormBuilder, private ubicationService: UbicationService, private messageService: MessageService) {}
 
     /**
      * Funcion para obtener el titulo del modal
@@ -162,13 +166,49 @@ export class UbicationFormModalComponent implements Modal {
     
     
         // Determinamos si estamos creando o actualizando una ubicacion
-        // if(this.ubication){
-        //     this.onSubmit.emit({action: 'add', data})
-        // }else {
-        //     this.onSubmit.emit({action: 'update', data})
-        // } 
+        if(this.ubication){
+            this.ubicationService.updatedUbication(data).subscribe({
+                next: (res) => {
+                  this.messageService.clear()
+                  this.messageService.add({
+                    severity: 'success',
+                    summary: 'Actualizacion exitosa',
+                    detail: 'Ubicacion actualizada con exito'
+                  })
+                window.location.reload()
+                },
+                error: (err) => {          
+                  this.messageService.clear()
+                  this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error al actualizar',
+                    detail: `${err.error.message}`
+                  })
+                }
+              })
+        } else {
+            this.ubicationService.registerUbication(data).subscribe({
+                next: (res) => {
+                  this.messageService.clear()
+                  this.messageService.add({
+                    severity: 'success',
+                    summary: 'Ubicacion registrada',
+                    detail: 'Ubicacion registrada con exito'
+                  })
+                  window.location.reload()
+                },
+                error: (err) => {          
+                  this.messageService.clear()
+                  this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error al registrar la ubicacion',
+                    detail: `${err.error.message}`
+                  })
+                }
+              })
+        } 
 
-        // this.onClose() 
+        
     }
 
 
@@ -196,7 +236,7 @@ export class UbicationFormModalComponent implements Modal {
             description,
             schedule,
         }
-
+        
         // agregamos los datos al formulario 
         formData.append('ubication', JSON.stringify(data))
         formData.append('photo', photo as Blob)
@@ -257,7 +297,7 @@ export class UbicationFormModalComponent implements Modal {
         return {
             scheduleType: key,
             schedule: schedule.filter((day:any) => day.available).map((day:any) => ({
-                days: [day.name],
+                days: [day.name.toLowerCase()],
                 hours: day.hours
             }))
         }
