@@ -10,6 +10,7 @@ import { FileDropped } from '../../components/upload-file/dnd.directive';
 import { CalendarModule } from 'primeng/calendar';
 import { UploadReportService } from '../../services/upload-report.service';
 import { FormsModule } from '@angular/forms';
+import { SelectionStateService } from '../../services/selection-state.service';
 
 // TODO: Implementar que en cualquiera caso, si se cambia el estado actual del proceso de seleccion desde el frontend y no corresponde con el backend,
 // se debe de mostrar un componente que el estado ese esta cerrado y no se puede modificar.
@@ -88,9 +89,9 @@ import { FormsModule } from '@angular/forms';
 
             <p-accordionTab header="Fecha limite" [headerStyleClass]="'text-red-500'" [disabled]="activeIndex !== 2">
                 <p class="mb-4">Seleccione la fecha limite de subida de información para los inscritos</p>
-                <div class="flex justify-content-center gap-6">
+                <div class="flex flex-column justify-content-center align-items-center  gap-3 mb-4">
                     <p-calendar class="max-w-full" [(ngModel)]="minDateSelected"  [inline]="true"  [minDate]="getMinDate()"></p-calendar>  
-                    <div>
+                    <div class="text-center">
                         <p>El formulario aceptara respuesta hasta: </p>
                         <p>Fecha: <strong>{{minDateSelected | date: 'dd/MM/yyyy'}}</strong> a las <strong>23:59:59</strong></p>
                     </div>                      
@@ -133,7 +134,8 @@ export class ReportComponent {
 
     constructor(
         private messageService: MessageService,
-        private uploadReportService: UploadReportService
+        private uploadReportService: UploadReportService,
+        private selectionStateService: SelectionStateService
     ) {}
 
     
@@ -183,7 +185,10 @@ export class ReportComponent {
     }
 
     reSendFile() {
-        localStorage.removeItem('candidates');
+        localStorage.setItem(
+            'upload-report',
+            JSON.stringify({report: [], activeIndex: 0})
+        );
         this.activeIndex = 0;
         this.reponseBack.set([]);
     }
@@ -191,10 +196,17 @@ export class ReportComponent {
     confirmAllData() {
         const data = {
             applicants: this.reponseBack(),
-            limit: this.minDateSelected.toISOString()
+            limit: `${this.minDateSelected.toISOString().split('T')[0]}T23:59:59.000000Z`
         }
         this.uploadReportService.confirmReport(data).subscribe({
-            next: (res) => console.log(res),
+            next: (res) => {
+                this.messageService.clear();
+                this.messageService.add({ severity: 'success', summary: 'Datos confirmados', detail: 'Se han confirmado los datos exitosamente.' });
+                this.activeIndex = 0;
+                localStorage.removeItem('upload-report');
+                this.reponseBack.set([]);
+                this.selectionStateService.nextCurrentSelectionState();
+            },
             error: (err) => console.error(err)
         })
     }

@@ -6,6 +6,8 @@ import { MenuItem } from 'primeng/api';
 import { Router, RouterOutlet } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
+import { SelectionStateService } from './services/selection-state.service';
+import { Subscription } from 'rxjs';
 @Component({
     selector: 'app-selection',
     standalone: true,
@@ -26,8 +28,9 @@ import { environment } from 'src/environments/environment';
 export class SelectionComponent {
     items = signal<MenuItem[]>([]);
     currentStep = signal(0);
+    currentSelectionStateSubscription$ = new Subscription();
 
-    constructor(private http: HttpClient, private router: Router) {}
+    constructor(private http: HttpClient, private router: Router, private currentStateService: SelectionStateService) {}
 
     ngOnInit(): void {
         //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
@@ -39,30 +42,39 @@ export class SelectionComponent {
             },
             {
                 label: 'Envio informe',
-                routerLink: 'carge-informe',
+                routerLink: 'beca-informacion',
             },
             {
                 label: 'Preselección',
-                routerLink: 'seat',
+                routerLink: 'preseleccion',
             },
             {
                 label: 'Horario',
-                routerLink: 'payment',
+                routerLink: 'horario',
             },
             {
                 label: 'Seleccionados',
-                routerLink: 'confirmation',
+                routerLink: 'seleccionados',
             },
         ]);
 
-        this.getCurrentStep().subscribe(({currentState}: any) => {
-            const {id} = currentState;
-            this.currentStep.set( id -1 );
-            
-            this.router.navigate([`/backoffice/becas/seleccion/${this.items()[this.currentStep()].routerLink}`]);
-
-        });
+        this.currentSelectionStateSubscription$ = this.currentStateService.currentSelectionState$.subscribe({
+            next: (currentState) => { 
+                if (currentState === null) 
+                    return
+                
+                const {id} = currentState;
+                this.currentStep.set( id -1 );
+                this.router.navigate([`/backoffice/becas/seleccion/${this.items()[this.currentStep()].routerLink}`]);
+            }
+        })
         
+    }
+
+    ngOnDestroy(): void {
+        //Called once, before the instance is destroyed.
+        //Add 'implements OnDestroy' to the class.
+        this.currentSelectionStateSubscription$.unsubscribe();
     }
 
     getCurrentStep() {

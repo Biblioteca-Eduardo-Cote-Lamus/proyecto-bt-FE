@@ -80,10 +80,12 @@ export class AppMenuComponent implements OnInit {
                             {
                                 label: 'Listado',
                                 icon: 'pi pi-fw pi-list',
+                                routerLink: ['/backoffice/becas/ubicaciones/']
                             },
                             {
                                 label: 'Encargados',
-                                icon: 'pi pi-fw pi-users'
+                                icon: 'pi pi-fw pi-users',
+                                routerLink: ['/backoffice/becas/ubicaciones/encargados']
                             }
                         ]
                     }
