@@ -107,7 +107,7 @@ export class ScheduleViewComponent {
      */
     private transformSchedule(schedule:UbicationSchedule): number[][]{
         const daysInSchedule = new Set(schedule.schedule.flatMap(item => item.days));
-        
+
         const finalSchedule = this.colTimes.map(hour => {
             return this.colDays.map(day => {
               const index = schedule.schedule.findIndex(item => item.days.includes(day.toLowerCase()));

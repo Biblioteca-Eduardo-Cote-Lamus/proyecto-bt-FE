@@ -47,7 +47,7 @@ import { ToastModule } from 'primeng/toast';
                         </p-tabPanel>
                         <p-tabPanel header="Horario">
                             <ng-template pTemplate="content">
-                                <app-ubication-schedule [schedule]="scheduleUbication || null" [becasAvailable]="ubicationFormValue?.becas || 0" (daysChange)="setSchedule($event)" />
+                                <app-ubication-schedule [schedule]="ubication?.schedule || null" [becasAvailable]="ubicationFormValue?.becas || 0" (daysChange)="setSchedule($event)" />
                             </ng-template>
                         </p-tabPanel>    
                     </p-tabView>
@@ -90,8 +90,6 @@ export class UbicationFormModalComponent implements Modal {
         invalid: true
     }
 
-    scheduleUbication : UbicationSchedule | undefined | null = null
-
     schedule : any = {
         schedule: [],
         valid: false,
@@ -99,17 +97,6 @@ export class UbicationFormModalComponent implements Modal {
 
     constructor(private ubicationService: UbicationService, private messageService: MessageService) {}
 
-    ngOnInit(): void {
-        //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
-        //Add 'implements OnInit' to the class.
-        if(this.ubication){
-            this.ubicationService.getScheduleByUbication(this.ubication.id).subscribe({
-                next: (res) => {
-                    this.scheduleUbication = res
-                }
-            })
-        }
-    }
 
     /**
      * Funcion para obtener el titulo del modal
