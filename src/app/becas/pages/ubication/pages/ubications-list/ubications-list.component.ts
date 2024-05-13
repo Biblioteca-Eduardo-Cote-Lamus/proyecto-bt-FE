@@ -63,7 +63,7 @@ import { TypeSchedulePipe } from '../../pipes/typeSchedule.pipe';
                                   {{ ubication[col].name }}
                                 } 
                                 @else if (col.includes('schedule')) {
-                                  {{ ubication[col].scheduleType | typeSchedule }}
+                                  {{ ubication[col]| typeSchedule }}
                                 } @else {
                                   {{ ubication[col] }}
                                 }
@@ -137,6 +137,12 @@ export class UbicationsListComponent implements OnInit {
 
       this.getUbications()
       
+    }
+
+    ngOnDestroy(): void {
+      //Called once, before the instance is destroyed.
+      //Add 'implements OnDestroy' to the class.
+      localStorage.removeItem('schedule')
     }
 
     /**

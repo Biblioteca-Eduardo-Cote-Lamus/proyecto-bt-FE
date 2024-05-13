@@ -9,7 +9,6 @@ import { ButtonModule } from 'primeng/button';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { MultiSelectModule } from 'primeng/multiselect';
-
 import { TYPES_SCHEDULE, TYPES_SCHEDULE_KEYS } from "../const/ubication-schedule.const";
 import { UbicationSchedule } from '../../../api';
 
@@ -262,7 +261,7 @@ import { UbicationSchedule } from '../../../api';
 export class UbicationScheduleComponent implements OnInit {
 
     @Input() becasAvailable = 0
-    @Input() schedule: UbicationSchedule = null
+    @Input() schedule: UbicationSchedule | null = null
     @Output() daysChange = new EventEmitter()
 
     // Variable para controlar los dias del horario

@@ -1,15 +1,10 @@
 import {
     ChangeDetectionStrategy, Component, EventEmitter,
-    Input,
-    OnInit,
-    Output
+    Input, Output
 } from '@angular/core';
-import {
-    FormBuilder, ReactiveFormsModule
-} from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
 import { Modal } from 'src/app/shared/api';
-import { Ubication } from '../../api';
+import { Ubication, UbicationSchedule } from '../../api';
 import { ButtonModule } from 'primeng/button';
 import { DropdownModule } from 'primeng/dropdown';
 import { NgClass } from '@angular/common';
@@ -17,7 +12,7 @@ import { UbicationService } from '../../pages/services/ubication.service';
 import { UbicationFormComponent } from './ubication-form.component';
 import { TabViewModule } from 'primeng/tabview';
 import { UbicationScheduleComponent } from './ubication-schedule/ubication-schedule.component';
-import { TYPES_SCHEDULE_KEYS } from './const/ubication-schedule.const'
+import { TYPES_SCHEDULE_KEYS } from './const/ubication-schedule.const';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 
@@ -30,7 +25,6 @@ import { ToastModule } from 'primeng/toast';
         DropdownModule,
         UbicationFormComponent,
         UbicationScheduleComponent,
-        ReactiveFormsModule,
         TabViewModule,
         ToastModule,
         NgClass,
@@ -46,7 +40,6 @@ import { ToastModule } from 'primeng/toast';
             header="Informacion detallada"
             (onHide)="onClose()"
         >
-            <!-- <ng-template pTemplate="headless"> -->
                 <div class="bg-white border-round p-2 h-full">
                     <p-tabView [activeIndex]="0"> 
                         <p-tabPanel header="Información">
@@ -54,12 +47,11 @@ import { ToastModule } from 'primeng/toast';
                         </p-tabPanel>
                         <p-tabPanel header="Horario">
                             <ng-template pTemplate="content">
-                                <app-ubication-schedule [schedule]="ubication.schedule" [becasAvailable]="ubicationFormValue?.becas || 0" (daysChange)="setSchedule($event)" />
+                                <app-ubication-schedule [schedule]="scheduleUbication || null" [becasAvailable]="ubicationFormValue?.becas || 0" (daysChange)="setSchedule($event)" />
                             </ng-template>
                         </p-tabPanel>    
                     </p-tabView>
                 </div>
-            <!-- </ng-template> -->
             <ng-template pTemplate="footer">
                 <p-button 
                     label="Guardar" 
@@ -98,12 +90,26 @@ export class UbicationFormModalComponent implements Modal {
         invalid: true
     }
 
+    scheduleUbication : UbicationSchedule | undefined | null = null
+
     schedule : any = {
         schedule: [],
         valid: false,
     }
 
-    constructor(private fb: FormBuilder, private ubicationService: UbicationService, private messageService: MessageService) {}
+    constructor(private ubicationService: UbicationService, private messageService: MessageService) {}
+
+    ngOnInit(): void {
+        //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
+        //Add 'implements OnInit' to the class.
+        if(this.ubication){
+            this.ubicationService.getScheduleByUbication(this.ubication.id).subscribe({
+                next: (res) => {
+                    this.scheduleUbication = res
+                }
+            })
+        }
+    }
 
     /**
      * Funcion para obtener el titulo del modal

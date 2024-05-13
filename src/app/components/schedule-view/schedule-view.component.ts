@@ -112,7 +112,7 @@ export class ScheduleViewComponent {
             return this.colDays.map(day => {
               const index = schedule.schedule.findIndex(item => item.days.includes(day.toLowerCase()));
               return daysInSchedule.has(day.toLowerCase())
-                ? schedule.schedule_format[index].includes(hour) ? 1 : 0
+                ? schedule.scheduleFormat[index].includes(hour) ? 1 : 0
                 : 0;
             });
           });

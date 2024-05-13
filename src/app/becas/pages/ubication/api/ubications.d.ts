@@ -3,7 +3,7 @@ export interface Ubication {
     name:        string;
     totalBecas:  number;
     manager:     ManagerUbication;
-    schedule:    UbicationSchedule;
+    schedule:    string;
     img:         string;
     description: string;
 }
@@ -16,7 +16,7 @@ export interface ManagerUbication {
 export interface UbicationSchedule {
     scheduleType:    string;
     schedule:        ScheduleElement[];
-    schedule_format: Array<string[]>;
+    scheduleFormat: Array<string[]>;
 }
 
 export interface ScheduleElement {
@@ -27,6 +27,5 @@ export interface ScheduleElement {
 export interface Hour {
     start: string;
     end:   string;
-    valid: boolean;
     becas: number;
 }

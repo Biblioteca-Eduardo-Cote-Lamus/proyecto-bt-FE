@@ -6,7 +6,6 @@ import { DropdownModule } from 'primeng/dropdown';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
-// import { PickListModule } from 'primeng/picklist';
 import { UbicationService } from '../../pages/services/ubication.service';
 import { FormErros } from 'src/app/shared/api';
 import { debounceTime } from 'rxjs';
@@ -20,7 +19,6 @@ import { BecasAssignValidator } from './validators/check-becas-asigned.validator
     imports: [
         ButtonModule,
         DropdownModule,
-        // PickListModule,
         InputTextModule,
         InputTextareaModule,
         InputNumberModule,
