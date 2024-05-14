@@ -42,14 +42,7 @@ import { UbicationService } from '../../pages/services/ubication.service';
             <h3 class="p-3"> {{ selectedOption === options[0] ? 'Horario de la ubicación' : 'Becas asignados a la ubicación'}} </h3>
             <div class="p-2">
               @if (selectedOption === options[0]) {
-                @if (!state().loading) {
-                  <app-schedule-view [schedule]="ubication.schedule" />
-                } @else if (state().error) {
-                  <p>Hubo un error al cargar el horario</p>
-                } @else {
-                  <p>Cargando...</p>
-                  <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
-                }
+                <app-schedule-view [schedule]="ubication.schedule" />
               }
               @if (selectedOption === options[1]) {
                 <table-by-ubication />
@@ -77,47 +70,16 @@ export class UbicationInfoModalComponent implements OnChanges{
   options = [ 'Horario', 'Listado de becas']
   selectedOption = this.options[0]
 
-  state = signal({
-    loading: true,
-    error: false,
-    success: false
-  })
   
   constructor(private scheduleService: ScheduleService, private ubicationService: UbicationService){}
 
   ngOnChanges(changes: SimpleChanges): void {
     const {ubication} = changes
     if(ubication){
-      const { id } = ubication.currentValue
+      const { schedule } = ubication.currentValue
  
-      if(id){
-
-        if(localStorage.getItem('schedule')){
-          const items = JSON.parse(localStorage.getItem('schedule'))
-          const item = items.find((item: any) => item.ubicationId === id)
-          if(item){
-            this.scheduleService.scheduleList = item.schedule
-            this.state.update((state) => ({success: true, error:false, loading: false}))
-            return
-          }
-        }
-
-        this.ubicationService.getScheduleByUbication(id).subscribe({
-          next: schedule => {
-            this.state.update((state) => ({success: true, error:false, loading: false}))
-            this.scheduleService.scheduleList = schedule
-            
-            const items = localStorage.getItem('schedule') ? JSON.parse(localStorage.getItem('schedule')) : []
-
-            if(items){
-              items.push({ubicationId: id, schedule})
-              localStorage.setItem('schedule', JSON.stringify(items))
-            }
-
-          },
-          error: () => this.state.update((state) => ({success: false, error:true, loading: false})),
-        })
-      
+      if(schedule){
+        this.scheduleService.scheduleList = schedule     
       }
     }
       

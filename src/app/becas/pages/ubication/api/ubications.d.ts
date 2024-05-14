@@ -3,7 +3,7 @@ export interface Ubication {
     name:        string;
     totalBecas:  number;
     manager:     ManagerUbication;
-    schedule:    string;
+    schedule:    UbicationSchedule;
     img:         string;
     description: string;
 }
