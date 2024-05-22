@@ -2,7 +2,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import { Ubication, UbicationSchedule } from '../../api';
+import { Ubication, UbicationName, UbicationSchedule } from '../../api';
+import { BecaTrabajoByUbication } from 'src/app/shared/api';
 
 @Injectable({
   providedIn: 'root'
@@ -76,6 +77,42 @@ export class UbicationService {
   }
 
   /**
+   * Funcion para obtener la lista de ubicaciones con id y nombre
+   * @returns Observable con la lista de ubicaciones con id y nombre
+   */
+  getUbicationsListNames(){
+    return this.http.get(`${environment.apiUrlBase}/ubications/ubications-names`).pipe(
+      map((res:any) => this.mappedResponseUbicationsNames(res.ubications))
+    )
+  }
+
+  /**
+   * Funcion para obtener la lista de becas por ubicacion
+   * @param id id de la ubicacion
+   * @returns Observable con la lista de becas por ubicacion
+   */
+  getBecasByUbication(id: number): Observable<BecaTrabajoByUbication[]>{
+    return this.http.get(`${environment.apiUrlBase}/selection/becas-selected-by-ubication?ubicationId=${id}`).pipe(
+      map<any, BecaTrabajoByUbication[]>((res:any) => {
+        const { becas } = res       
+        return becas.map(({beca}) => ({
+          code: beca.code,
+          fullName: beca.full_name,
+          email: beca.email,
+          career: beca.career,
+          address: beca.address,
+          gender: beca.gender,
+          status: beca.status,
+          studies: beca.extra_studies,
+          motivation: beca.motivation,
+          photo: `${environment.mediaUrl}${beca.photo}`,
+        }))
+      })
+    )
+  }
+
+
+  /**
    * Funcion para mapear la respuesta de la peticion
    * @param res respueta de la peticion
    * @returns Ubication ubicacion mapeada
@@ -91,6 +128,20 @@ export class UbicationService {
       img, 
       description
     }
+  }
+
+  /**
+   * Funcion para mapear las ubicaciones con id y nombre
+   * @param res Respuesta del backenm 
+   * @returns lista de ubicaciones con id y nombre
+   */
+  private mappedResponseUbicationsNames(res:any): Array<UbicationName>{
+    return res.map((ubi: any) => {
+      const { id, name } = ubi
+      return { id, name }
+    }).sort((a: UbicationName, b: UbicationName) => {
+      return a.name.localeCompare(b.name);
+    });
   }
 
 }

@@ -34,7 +34,6 @@ export class PreselectionComponent {
   ngOnInit() {
     this.items = [
         { label: 'Listado por ubicación', icon: 'pi pi-fw pi-home', routerLink: ['./'] },
-        { label: 'Horario', icon: 'pi pi-fw pi-calendar' },
     ];
     this.activeItem = this.items[0]
   }

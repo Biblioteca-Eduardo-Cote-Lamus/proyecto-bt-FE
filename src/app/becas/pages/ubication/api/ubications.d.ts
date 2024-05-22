@@ -29,3 +29,11 @@ export interface Hour {
     end:   string;
     becas: number;
 }
+
+
+// ************************************************************ ************************************************************************************ //
+
+export interface UbicationName {
+    id  :  number;
+    name:  string;
+}
