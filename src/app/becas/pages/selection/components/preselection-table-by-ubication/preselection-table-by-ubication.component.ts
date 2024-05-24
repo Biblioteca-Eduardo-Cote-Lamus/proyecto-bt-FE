@@ -79,11 +79,9 @@ export class PreselectionTableByUbicationComponent {
     constructor() { }
 
     ngOnChanges(changes: SimpleChanges): void {
-      //Called before any other lifecycle hook. Use it to inject dependencies, but avoid any serious work here.
-      //Add '${implements OnChanges}' to the class.
       const {currentValue } = changes['list']
       
-      if(currentValue){
+      if(currentValue && currentValue.length > 0){
         this.columns = Object.keys(currentValue[0]).slice(0, -3)
       }
     }

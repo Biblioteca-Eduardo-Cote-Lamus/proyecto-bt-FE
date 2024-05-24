@@ -6,6 +6,7 @@ import { SelectItemGroup } from 'primeng/api';
 import { UbicationService } from 'src/app/becas/pages/ubication/pages/services/ubication.service';
 import { FormsModule } from '@angular/forms';
 import { BecaTrabajoByUbication } from 'src/app/shared/api';
+import { InfoBecaPreselectionModalComponent } from '../../../../components/modal/info-beca-preselection-modal.component';
 
 @Component({
     selector: 'app-preselection-tab-view',
@@ -14,7 +15,8 @@ import { BecaTrabajoByUbication } from 'src/app/shared/api';
         CommonModule,
         PreselectionTableByUbicationComponent,
         ListboxModule,
-        FormsModule
+        FormsModule,
+        InfoBecaPreselectionModalComponent
     ],
     template: `
     
@@ -37,13 +39,17 @@ import { BecaTrabajoByUbication } from 'src/app/shared/api';
       <section class="col-12 md:col-9">
         <div class="surface-card p-4 border-round border-1 border-gray-200 " >
           <!-- @if (becas.length > 0) { -->
-            <table-by-ubication [list]="becas" />
+            <table-by-ubication [list]="becas" (onSelectBeca)="openBecaInfo($event)" />
           <!-- } @else {
             <div class="p-4">No hay becas para mostrar</div>
           } -->
         </div>
       </section>
     </div>
+
+    @if (modalInfoBeca) {
+      <app-info-beca-preselection-modal [(visible)]="modalInfoBeca" [beca]="becaSelected" />
+    }
     
     `,
     styles: `
@@ -65,16 +71,33 @@ export class PreselectionTabViewComponent {
     }
   ];
 
+  // Controla la ubicacion seleccionada
   selectedUbication: number | undefined;
 
   // Controla la lista de becas a mostrar en la tabla
   becas: BecaTrabajoByUbication[] = []
 
+  // controla el modal de informacion de beca
+  modalInfoBeca = true
+
+  // controla el beca seleccionado
+  becaSelected: BecaTrabajoByUbication | undefined = {
+    "code": "1152069",
+    "fullName": "Angel Gabriel Garcia Rangel",
+    "email": "angelgabrielgara@ufps.edu.co",
+    "photo": "http://localhost:8000/media/becas-trabajo/1152069/fotos/1152069.png",
+    "address": "Tamarindo Club casa M #38",
+    "gender": "Masculino",
+    "career": "Ingeniería de Sistemas",
+    "studies": "sistemas",
+    "motivation": "Me gustaria ser parte de la biblioteca debido a que considero que cuento con grandes habilidades sociales",
+    "status": "Candidate"
+};
+
   constructor(private ubicationService: UbicationService, private cd: ChangeDetectorRef) { }
 
   ngOnInit(): void {
-    //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
-    //Add 'implements OnInit' to the class.
+
     this.ubicationService.getUbicationsListNames().subscribe({
       next: res => {
         this.ubicationsGroup[0].items = res.map(ubi => ({ label: ubi.name, value: ubi.id }))
@@ -101,6 +124,11 @@ export class PreselectionTabViewComponent {
 
   }
 
+  /**
+   * Funcion que controla el evento de cambio de ubicacion y hacer la peticion de becas por ubicacion
+   * @param event : ListboxClickEvent evento de click en el listBox
+   * @returns 
+   */
   changeUbication(event: ListboxClickEvent){
     const { option } = event    
     
@@ -108,11 +136,12 @@ export class PreselectionTabViewComponent {
     if(!this.selectedUbication) return
     
     this.selectedUbication = option.value
-
     this.getBecasByUbication(this.selectedUbication)
+  }
 
-
-    
+  openBecaInfo(beca: BecaTrabajoByUbication){
+    this.modalInfoBeca = true
+    this.becaSelected = beca
   }
 
 

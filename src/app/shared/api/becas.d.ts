@@ -1,6 +1,6 @@
 export interface BecaTrabajoByUbication { 
     status:        string;
-    fullNmae:      string
+    fullName:      string
     email:         string;
     photo:         string;
     address:       string;
