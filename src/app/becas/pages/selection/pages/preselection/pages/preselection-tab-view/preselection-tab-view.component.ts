@@ -38,11 +38,7 @@ import { InfoBecaPreselectionModalComponent } from '../../../../components/modal
 
       <section class="col-12 md:col-9">
         <div class="surface-card p-4 border-round border-1 border-gray-200 " >
-          <!-- @if (becas.length > 0) { -->
             <table-by-ubication [list]="becas" (onSelectBeca)="openBecaInfo($event)" />
-          <!-- } @else {
-            <div class="p-4">No hay becas para mostrar</div>
-          } -->
         </div>
       </section>
     </div>
@@ -78,21 +74,10 @@ export class PreselectionTabViewComponent {
   becas: BecaTrabajoByUbication[] = []
 
   // controla el modal de informacion de beca
-  modalInfoBeca = true
+  modalInfoBeca = false
 
   // controla el beca seleccionado
-  becaSelected: BecaTrabajoByUbication | undefined = {
-    "code": "1152069",
-    "fullName": "Angel Gabriel Garcia Rangel",
-    "email": "angelgabrielgara@ufps.edu.co",
-    "photo": "http://localhost:8000/media/becas-trabajo/1152069/fotos/1152069.png",
-    "address": "Tamarindo Club casa M #38",
-    "gender": "Masculino",
-    "career": "Ingeniería de Sistemas",
-    "studies": "sistemas",
-    "motivation": "Me gustaria ser parte de la biblioteca debido a que considero que cuento con grandes habilidades sociales",
-    "status": "Candidate"
-};
+  becaSelected: BecaTrabajoByUbication | undefined
 
   constructor(private ubicationService: UbicationService, private cd: ChangeDetectorRef) { }
 

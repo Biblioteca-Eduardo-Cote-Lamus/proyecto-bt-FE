@@ -40,7 +40,8 @@ import { BecaTrabajoByUbication } from 'src/app/shared/api';
         }
         .photo{
             top: 90px;
-            left: 30%;
+            left: 50%;
+            transform: translateX(-50%);
             height: 120px;
             width: 120px;
             margin: 0 auto;
