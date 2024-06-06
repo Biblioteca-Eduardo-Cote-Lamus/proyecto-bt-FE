@@ -8,11 +8,11 @@ export const PRESELECCTION_ROUTES: Routes = [
     //     component: PreselectionTabViewComponent
     // },
     {
-        path: 'seleccionar',
+        path: 'notificar',
         component: SeleccionarTabViewComponent
     },
     {
         path: '**',
-        redirectTo: 'seleccionar'
+        redirectTo: 'notificar'
     }
 ]

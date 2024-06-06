@@ -9,4 +9,6 @@ export interface BecaTrabajoByUbication {
     studies:       string;
     motivation:    string;
     code:          string;
+    percentage:    number;
+    notified:      boolean;
 }

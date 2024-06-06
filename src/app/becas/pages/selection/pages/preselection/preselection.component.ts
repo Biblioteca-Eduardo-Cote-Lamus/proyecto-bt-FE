@@ -56,7 +56,7 @@ export class PreselectionComponent {
   ngOnInit() {
     this.items = [
         { label: 'Listado por ubicación', icon: 'pi pi-fw pi-home', route: ['./'],  },
-        { label: 'Seleccionar becas', icon: 'pi pi-fw pi-user', route: ['./seleccionar'],  },
+        { label: 'Notificar becas', icon: 'pi pi-fw pi-envelope', route: ['./notificar'],  },
     ];
     this.activeItem = this.items[1]
   }

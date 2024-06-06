@@ -103,9 +103,11 @@ export class UbicationService {
           address: beca.address,
           gender: beca.gender,
           status: beca.status,
-          studies: beca.extra_studies,
-          motivation: beca.motivation,
           photo: `${environment.mediaUrl}${beca.photo}`,
+          percentage: beca.percentage,
+          notified: beca.notified,
+          motivation: beca.motivation,
+          studies: beca.extra_studies,
         }))
       })
     )

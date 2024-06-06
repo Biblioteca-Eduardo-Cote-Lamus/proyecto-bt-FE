@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { PreselectionTableByUbicationComponent } from '../../../../components/preselection-table-by-ubication/preselection-table-by-ubication.component';
-import { ListboxModule } from 'primeng/listbox';
+import { ListboxChangeEvent, ListboxClickEvent, ListboxModule } from 'primeng/listbox';
 import { SelectItemGroup } from 'primeng/api';
 import { FormsModule } from '@angular/forms';
 import { UbicationService } from 'src/app/becas/pages/ubication/pages/services/ubication.service';
@@ -9,6 +9,11 @@ import { BecaTrabajoByUbication } from 'src/app/shared/api';
 import { DropdownModule } from 'primeng/dropdown';
 import { UbicationName } from 'src/app/becas/pages/ubication/api';
 import { SkeletonModule } from 'primeng/skeleton';
+import { ButtonModule } from 'primeng/button';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService, MessageService  } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { PreselectionService } from '../../services/preselection.service';
 
 @Component({
     selector: 'app-seleccionar-tab-view',
@@ -19,6 +24,9 @@ import { SkeletonModule } from 'primeng/skeleton';
         FormsModule,
         DropdownModule,
         SkeletonModule,
+        ButtonModule,
+        ConfirmDialogModule,
+        ToastModule,
         PreselectionTableByUbicationComponent,
     ],
     template: `
@@ -59,7 +67,8 @@ import { SkeletonModule } from 'primeng/skeleton';
                         [multiple]="true" 
                         [metaKeySelection]="false" 
                         [listStyle]="{'max-height': '220px'}"
-                        [filter]="true" >
+                        [filter]="true"
+                        (onChange)="onSelectBeca($event)" >
                         <ng-template pTemplate="empty">
                             <p>No hay becas asignados a {{selectedUbication.name}}</p>
                         </ng-template>
@@ -89,13 +98,21 @@ import { SkeletonModule } from 'primeng/skeleton';
             </section>
 
             <section class="col-12 md:col-9">
-                <div class="surface-card p-4 border-round border-1 border-gray-200 " >
-                    <table-by-ubication [list]="selectedBecaUbication"  />
-                </div>
+                <p-button label="Notificar" [styleClass]="'mb-3'"  (onClick)=" notifyBecasPopup()" />
+                @if (!notifiedBecas) {
+                    <p-skeleton styleClass="mb-2" height="50px" />
+                }@else {
+                    <div class="surface-card p-4 border-round border-1 border-gray-200" >
+                        <table-by-ubication [list]="notifiedBecas" />
+                    </div>
+                }
             </section>
         </div>    
+        <p-toast />
+        <p-confirmDialog />
     `,
     changeDetection: ChangeDetectionStrategy.OnPush,
+    providers: [ConfirmationService, MessageService]
 })
 export class SeleccionarTabViewComponent implements OnInit {
 
@@ -105,7 +122,7 @@ export class SeleccionarTabViewComponent implements OnInit {
     gropuedBecasUbication: BecaTrabajoByUbication[];
 
     /**
-     * Listado de los becas seleccionados
+     * Listado de los becas seleccionados para el ngModel
      */
     selectedBecaUbication!: any;
 
@@ -129,8 +146,26 @@ export class SeleccionarTabViewComponent implements OnInit {
      */
     cd = inject(ChangeDetectorRef)
 
+    /**
+     * Servicio de confirmación del modal para notificar a los becas seleccionados
+     */
+    confirmationService = inject(ConfirmationService)
+
+    /**
+     * Servicio de mensajes para mostrar mensajes en la vista
+     */
+    messageService = inject(MessageService)
+
+    /**
+     * Servicio de preselección para notificar a los becas seleccionados
+     */
+    preselectionService = inject(PreselectionService)
+
+    notifiedBecas: BecaTrabajoByUbication[]
+
     ngOnInit(): void {
         this.getUbications();
+        this.getNotifiedBecas();
      }
 
 
@@ -141,7 +176,10 @@ export class SeleccionarTabViewComponent implements OnInit {
     getBecasByUbication(id: number) {
         this.ubicationService.getBecasByUbication(id).subscribe({
             next: becas => {
-                this.gropuedBecasUbication = becas;
+                this.gropuedBecasUbication = becas;    
+                this.selectedBecaUbication = becas.filter(beca => beca.notified)
+
+                
                 this.cd.markForCheck();
             }
         })
@@ -162,13 +200,89 @@ export class SeleccionarTabViewComponent implements OnInit {
     }
 
     /**
+     * Funcion que obtiene la lista de los becas notificados
+     */
+    getNotifiedBecas(){
+        this.preselectionService.getNotifiedBecas().subscribe({
+            next: res => {
+                this.notifiedBecas = res
+                this.cd.markForCheck();
+            }
+        })
+    }
+
+    /**
      * Funcion para cambiar la ubicacion seleccionada
      * @param event evento de cambio
      */
     changeUbication(event: any){
         this.selectedUbication = event.value;
-        this.gropuedBecasUbication = undefined
         this.getBecasByUbication(this.selectedUbication.id);
     }
+
+    /**
+     * Funcion para notificar a los becas seleccionados
+     */
+    notifyBecasPopup(){
+        this.confirmationService.confirm({
+            message: '¿Estas seguro de notificar a los becas seleccionados?',
+            header: 'Notificar becas',
+            icon: 'pi pi-info-circle',
+            rejectButtonStyleClass:"p-button-text",
+            acceptIcon:"pi pi-check",
+            rejectIcon:"pi pi-times",
+            acceptLabel: 'Aceptar',
+            rejectLabel: 'Cancelar',
+            accept: () => {
+                this.notifyBecasAction()
+            },
+        });
+    }
+
+    /**
+     * Funcion para notificar a los becas seleccionados por correo electronico.
+     */
+    notifyBecasAction(){
+
+        // extraemos los becas que no hayan sido notificados en caso de que se seleccionen nuevos
+        const becasToNotify = this.selectedBecaUbication.filter((beca: BecaTrabajoByUbication) => !beca.notified).map((beca: BecaTrabajoByUbication) => beca.code)
+        
+        // validamos que se haya seleccionado al menos un beca
+        if(becasToNotify.length == 0 || !becasToNotify){
+            this.messageService.add({severity:'error', summary: 'Error', detail: 'Debe seleccionar al menos un beca'});
+            return
+        }
+
+        // hacemos el llamado a la API para notificar a los becas seleccionados
+        this.preselectionService.notifyBecas(becasToNotify).subscribe({
+            next: (res:any) => {
+                window.location.reload();
+            },
+            error: (err:any) => {
+                this.messageService.clear();
+                this.messageService.add({severity:'error', summary: 'Error', detail: 'Ocurrio un error al notificar a los becas'});
+            }
+        })
+    }
+
+    onSelectBeca(event: ListboxChangeEvent){
+       const value = event.value[ event.value.length - 1 ]
+
+       // si no hay valor, eso quiere decir que no hayu becas seleccionados (ni notificados)
+       if(!value){
+           this.notifiedBecas = []
+       }
+
+       const isInSelectedBecasUbication = this.selectedBecaUbication.find((beca: BecaTrabajoByUbication) => beca.code == value.code)
+
+       if(isInSelectedBecasUbication){
+            this.notifiedBecas = [...this.notifiedBecas, value]
+       } else {
+            this.notifiedBecas = this.notifiedBecas.filter((beca: BecaTrabajoByUbication) => beca.code != value.code)
+       }
+
+        this.cd.markForCheck();
+    }
+
 
 }
