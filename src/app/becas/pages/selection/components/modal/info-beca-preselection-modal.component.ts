@@ -28,7 +28,8 @@ import { StatisticsUbication } from '../../pages/preselection/api';
         [style]="{ width: '90vw', boxShadow: 'none', overflowY: 'auto', overflowX: 'hidden' }"
         [draggable]="false" 
         [resizable]="false"
-        maskStyle="backdrop-filter: blur(2px);">
+        maskStyle="backdrop-filter: blur(2px);"
+        (onHide)="onClose()">
 
         <ng-template pTemplate="headless">
           
@@ -175,6 +176,11 @@ export class InfoBecaPreselectionModalComponent implements Modal {
   @Input() beca: BecaTrabajoByUbication;
 
   /**
+   * Emite un evento cuando se cierra el modal del beca seleccionado.
+   */
+  @Output() becaChange: EventEmitter<BecaTrabajoByUbication | null | undefined> = new EventEmitter();
+
+  /**
    * Datos para mostrar en el gráfico de barras.
    */
   data: any;
@@ -295,6 +301,7 @@ export class InfoBecaPreselectionModalComponent implements Modal {
    */
   onClose() {
     this.visibleChange.emit(this.visible);
+    this.becaChange.emit(null)
   };
 
   /**

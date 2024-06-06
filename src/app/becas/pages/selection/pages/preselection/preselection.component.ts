@@ -1,20 +1,41 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { TabMenuModule } from 'primeng/tabmenu';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
+import { NgIf } from '@angular/common';
 
 @Component({
     selector: 'app-preselection',
     standalone: true,
     imports: [                
         TabMenuModule,
-        RouterOutlet
+        RouterOutlet,
+        NgIf,
     ],
     template: `
       <main class="">
 
       <div class="card">
-        <p-tabMenu [model]="items" [activeItem]="activeItem" ></p-tabMenu>
+        <p-tabMenu [model]="items" [activeItem]="activeItem" (activeItemChange)="onActiveItemChange($event)"  >
+          <ng-template pTemplate="item" let-item>
+              <ng-container *ngIf="item.route; ">
+                  <a [routerLink]="item.route" class="p-menuitem-link">
+                      <span [class]="item.icon"></span>
+                      <span class="ml-2">
+                          {{ item.label }}
+                      </span>
+                  </a>
+              </ng-container>
+              <ng-template #elseBlock>
+                  <a [href]="item.url" class="p-menuitem-link">
+                      <span [class]="item.icon"></span>
+                      <span class="ml-2">
+                          {{ item.label }}
+                      </span>
+                  </a>
+              </ng-template>
+            </ng-template>
+        </p-tabMenu>
       </div>
 
         <section >
@@ -30,11 +51,17 @@ import { RouterOutlet } from '@angular/router';
 export class PreselectionComponent {
   items: MenuItem[] | undefined;
   activeItem: MenuItem | undefined;
+  router = inject(Router);
 
   ngOnInit() {
     this.items = [
-        { label: 'Listado por ubicación', icon: 'pi pi-fw pi-home', routerLink: ['./'] },
+        { label: 'Listado por ubicación', icon: 'pi pi-fw pi-home', route: ['./'],  },
+        { label: 'Seleccionar becas', icon: 'pi pi-fw pi-user', route: ['./seleccionar'],  },
     ];
-    this.activeItem = this.items[0]
+    this.activeItem = this.items[1]
   }
+
+  onActiveItemChange(event: MenuItem) {
+    this.activeItem = event;
+}
  }

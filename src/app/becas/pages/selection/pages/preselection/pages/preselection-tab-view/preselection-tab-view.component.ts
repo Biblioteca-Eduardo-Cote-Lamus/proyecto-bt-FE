@@ -44,7 +44,7 @@ import { InfoBecaPreselectionModalComponent } from '../../../../components/modal
     </div>
 
     @if (modalInfoBeca) {
-      <app-info-beca-preselection-modal [(visible)]="modalInfoBeca" [beca]="becaSelected" />
+      <app-info-beca-preselection-modal [(visible)]="modalInfoBeca" [(beca)]="becaSelected" />
     }
     
     `,
