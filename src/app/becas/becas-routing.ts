@@ -14,5 +14,9 @@ export const BECAS_ROUTES: Routes = [
     {
         path: 'documentos',
         loadChildren: () => import('./pages/documents/documents.routes').then(d => d.DOCUMENTS_ROUTES)
+    },
+    {
+        path: 'listado-becas',
+        loadChildren: () => import('./pages/beca-list/becas-list.routes').then(b => b.BECA_LIST_ROUTES)
     }
 ]
