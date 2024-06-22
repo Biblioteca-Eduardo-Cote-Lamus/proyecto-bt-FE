@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject, signal } from '@angular/core';
 import { PreselectionTableByUbicationComponent } from '../../../../components/preselection-table-by-ubication/preselection-table-by-ubication.component';
 import { ListboxChangeEvent, ListboxClickEvent, ListboxModule } from 'primeng/listbox';
 import { SelectItemGroup } from 'primeng/api';
@@ -14,6 +14,15 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService, MessageService  } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { PreselectionService } from '../../services/preselection.service';
+import { DialogModule } from 'primeng/dialog';
+import { AddScheduleComponent } from 'src/app/becas/pages/beca-list/components/add-schedule/add-schedule.component';
+
+interface SelectedBeca {
+    error: boolean;
+    loading: boolean;
+    beca: BecaTrabajoByUbication;
+    data: any;
+}
 
 @Component({
     selector: 'app-seleccionar-tab-view',
@@ -27,6 +36,8 @@ import { PreselectionService } from '../../services/preselection.service';
         ButtonModule,
         ConfirmDialogModule,
         ToastModule,
+        DialogModule,
+        AddScheduleComponent,
         PreselectionTableByUbicationComponent,
     ],
     template: `
@@ -103,11 +114,48 @@ import { PreselectionService } from '../../services/preselection.service';
                     <p-skeleton styleClass="mb-2" height="50px" />
                 }@else {
                     <div class="surface-card p-4 border-round border-1 border-gray-200" >
-                        <table-by-ubication [list]="notifiedBecas" />
+                        <table-by-ubication 
+                            [list]="notifiedBecas" 
+                            [dismissBecaButtonFlag]="true" 
+                            (onAcceptBeca)="onAcceptBeca($event)" />
+                             
                     </div>
                 }
             </section>
         </div>    
+
+        @if (openScheduleModal) {
+            <p-dialog 
+                header="Horarios" 
+                [(visible)]="openScheduleModal" 
+                [style]="{width: '90%', maxWidth: '450px' }"
+                [draggable]="false"
+                [resizable]="false"
+                position="top"
+                [modal]="true"> 
+                
+                
+                @if (selectedBeca().loading) {
+                    <p-skeleton styleClass="mr-2" height="150px"/>
+                }
+
+                @if (!selectedBeca().error && !selectedBeca().loading) {
+                    <app-add-schedule [beca]="selectedBeca().beca" [coveredHours]="selectedBeca().data" ></app-add-schedule>
+                }
+                
+                
+                
+                <ng-template pTemplate="footer">
+                    <div class="w-full flex justify-content-start">
+                        <p-button label="Ver horario" [styleClass]="'mr-2'" (onClick)="openScheduleModal = false" />
+                    </div>
+                </ng-template>
+                
+            </p-dialog>
+        }
+
+
+
         <p-toast />
         <p-confirmDialog />
     `,
@@ -161,7 +209,20 @@ export class SeleccionarTabViewComponent implements OnInit {
      */
     preselectionService = inject(PreselectionService)
 
+    /**
+     * Listado de becas notificados
+     */
     notifiedBecas: BecaTrabajoByUbication[]
+
+    /**
+     * Bandera para mostrar el modal de horarios
+     */
+    openScheduleModal: boolean = false;
+
+
+    selectedBeca = signal<SelectedBeca>({ error: false, loading: false, beca: {} as BecaTrabajoByUbication, data: {} })
+
+
 
     ngOnInit(): void {
         this.getUbications();
@@ -282,6 +343,39 @@ export class SeleccionarTabViewComponent implements OnInit {
        }
 
         this.cd.markForCheck();
+    }
+
+    /**
+     * Funcion para aceptar una beca
+     * @param event Beca seleccionado
+     */
+    onAcceptBeca(event: BecaTrabajoByUbication){
+
+        this.openScheduleModal = true
+        this.selectedBeca.set({ error: false, loading: true, beca: event, data: {} })
+
+        this.preselectionService.getStatisticsByBeca(event.code).subscribe({
+            next: (res: any) => {
+                const { infoPerDay } = res.data
+                this.selectedBeca.set(
+                    { 
+                        error: false, 
+                        loading: false, 
+                        beca: event, 
+                        data: infoPerDay.map((info: any) => ({ day: info.day, coveredHours: info.coveredHours }))
+                    })
+            },
+            error: (err: any) => {
+                this.selectedBeca.update( state => ({
+                    loading: false,
+                    error: true,
+                    ...state
+                }))
+                this.openScheduleModal = false
+                this.messageService.add({severity:'error', summary: 'Error', detail: 'Ocurrio un error al obtener la información de la beca'});
+            }
+        })
+
     }
 
 

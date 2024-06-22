@@ -12,7 +12,8 @@ export const PRESELECCTION_ROUTES: Routes = [
         component: SeleccionarTabViewComponent
     },
     {
-        path: '**',
-        redirectTo: 'notificar'
+        path: '',
+        redirectTo: 'notificar',
+        pathMatch: 'full'
     }
 ]

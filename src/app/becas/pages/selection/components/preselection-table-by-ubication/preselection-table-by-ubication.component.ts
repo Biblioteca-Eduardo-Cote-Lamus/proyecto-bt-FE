@@ -6,11 +6,12 @@ import { ChipModule } from 'primeng/chip';
 import { AvatarModule } from 'primeng/avatar';
 import { TagModule } from "primeng/tag";
 import { ButtonModule } from 'primeng/button';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
     selector: 'table-by-ubication',
     standalone: true,
-    imports: [TableModule, ChipModule ,AvatarModule, TagModule, ButtonModule, NgClass],
+    imports: [TableModule, ChipModule ,AvatarModule, TagModule, ButtonModule, TooltipModule,NgClass],
     template: `
         <p-table
             [value]="list"
@@ -38,7 +39,7 @@ import { ButtonModule } from 'primeng/button';
                       </th>
                     }
                     @if (dismissBecaButtonFlag) {
-                      <th>Descartar</th>
+                      <th>Acciones</th>
                     }
                 </tr>
             </ng-template>
@@ -70,7 +71,24 @@ import { ButtonModule } from 'primeng/button';
 
                     @if (dismissBecaButtonFlag) {
                       <td>
-                        <p-button icon="pi pi-times" [rounded]="true" severity="danger" />
+                        <div class="flex gap-2">
+                          <p-button 
+                            icon="pi pi-check" 
+                            [rounded]="true" 
+                            [text]="true" 
+                            severity="success"
+                            pTooltip="seleccionar"
+                            tooltipPosition="top"
+                            (onClick)="onAcceptBeca.emit(beca)" />
+                          <p-button 
+                            icon="pi pi-times" 
+                            [rounded]="true" 
+                            [text]="true" 
+                            severity="danger"
+                            pTooltip="Descartar"
+                            tooltipPosition="top"
+                            (onClick)="onDismissBeca.emit(beca)" />
+                        </div>
                       </td>
                     }
                 </tr>
@@ -111,6 +129,11 @@ export class PreselectionTableByUbicationComponent {
      * Evento para emitir el beca que se va a descartar. 
      */
     @Output() onDismissBeca = new EventEmitter<BecaTrabajoByUbication>()
+
+    /**
+     * Evento para emitir el beca que se va a aceptar. 
+     */
+    @Output() onAcceptBeca = new EventEmitter<BecaTrabajoByUbication>()
 
     constructor() { }
 

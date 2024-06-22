@@ -1,10 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, type OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, SimpleChanges, type OnInit } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { DropdownModule } from 'primeng/dropdown';
 import { ModalSchedule } from '../../api';
 import { TooltipModule } from 'primeng/tooltip';
 import { FormsModule } from '@angular/forms';
+import { BecaTrabajoByUbication } from 'src/app/shared/api';
+import { transformSchedule } from '../../utils';
 
 interface Hours {
     start: string,
@@ -33,8 +35,8 @@ interface AddSchedule {
             <div class="p-fluid mb-4">
                 <label for="beca" class="inline-block mb-2">Seleccione un beca</label>
                 <p-dropdown 
-                    [options]="[{name: 'Angel'}]"
-                    optionLabel="name" 
+                    [options]="becas"
+                    optionLabel="fullName" 
                     inputId="beca"
                     placeholder="Beca" />
             </div>
@@ -128,6 +130,21 @@ export class AddScheduleComponent implements OnInit, ModalSchedule {
     @Output() onCancel: EventEmitter<boolean> = new EventEmitter();
 
     /**
+     * Horas cubiertas por el beca
+     */
+    @Input() coveredHours: any
+
+    /**
+     * Beca seleccionada
+     */
+    @Input() beca:BecaTrabajoByUbication | undefined
+
+    /**
+     * Lista de becas
+     */
+    becas: BecaTrabajoByUbication[] = []
+
+    /**
      * Dia seleccionado, por defecto es Lunes
      */
     selectedDay = 'Lunes';
@@ -135,9 +152,37 @@ export class AddScheduleComponent implements OnInit, ModalSchedule {
     schedule: AddSchedule[]  = []
     
     ngOnInit(): void { 
-        this.loadInitialSchedule()
+        
+        if (!this.coveredHours) {
+            this.loadInitialSchedule()   
+        }
+
     }
 
+    ngOnChanges(changes: SimpleChanges): void {
+        //Called before any other lifecycle hook. Use it to inject dependencies, but avoid any serious work here.
+        //Add '${implements OnChanges}' to the class.
+        const { coveredHours, beca } = changes
+
+        
+        if(!beca || !coveredHours){
+            this.loadInitialSchedule()
+        }
+
+        if(beca && beca.currentValue){
+            this.becas = [...this.becas, beca.currentValue ]
+        }
+
+        if(coveredHours && coveredHours.currentValue){
+            this.schedule = transformSchedule(coveredHours.currentValue)  
+        }
+        
+    }
+
+    /**
+     * Carga el horario inicial si no se ha enviado un beca y su horario
+     * @returns
+    */
     loadInitialSchedule(){
         this.schedule = this.days.map(day => {
             return {
