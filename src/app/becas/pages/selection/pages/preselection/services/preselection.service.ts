@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map } from 'rxjs';
+import { AddSchedule } from 'src/app/becas/pages/beca-list/components/add-schedule/add-schedule.component';
 import { BecaTrabajoByUbication } from 'src/app/shared/api';
 import { environment } from 'src/environments/environment';
 
@@ -53,9 +54,19 @@ export class PreselectionService {
           notified: beca.notified,
           motivation: beca.motivation,
           studies: beca.extra_studies,
+          ubication: beca.ubication
         }))
       })
     )
+  }
+
+  /**
+   * Funcion que hace la peticion a la API para seleccionar una beca y crear su horario. 
+   * @param data Informacion de la beca seleccionada: {  becaId: codigo del beca, schedule: horario del beca }
+   * @returns Observable con la respuesta de la peticion
+   */
+  selectBeca(data: { becaId: number | string, schedule: AddSchedule, ubicationId: number}){
+    return this.http.post(`${environment.apiUrlBase}/selection/select-beca`, data)
   }
 
 }

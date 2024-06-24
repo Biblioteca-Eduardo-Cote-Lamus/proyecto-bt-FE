@@ -11,4 +11,8 @@ export interface BecaTrabajoByUbication {
     code:          string;
     percentage:    number;
     notified:      boolean;
+    ubication? : {
+        id: number;
+        name: string;
+    }
 }

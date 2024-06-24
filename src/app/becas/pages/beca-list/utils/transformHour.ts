@@ -10,7 +10,8 @@ export function transformSchedule(scheduleList) {
             const [start, end] = period.split("-");
             return {
                 start: convertTimeFormat(start),
-                end: convertTimeFormat(end)
+                end: convertTimeFormat(end),
+                valid: true
             };
         });
         return acc;

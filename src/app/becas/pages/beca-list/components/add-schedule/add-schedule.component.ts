@@ -8,12 +8,27 @@ import { FormsModule } from '@angular/forms';
 import { BecaTrabajoByUbication } from 'src/app/shared/api';
 import { transformSchedule } from '../../utils';
 
-interface Hours {
+export enum Actions{
+    ADD = 'Agregar', // agregar y hace la petición a la API
+    EDIT = 'Editar', // editar y hace la petición a la API
+    ADD_AND_EMIT = 'Agregar y notificar', // agregar y emite el evento con la data 
+    EDIT_AND_EMIT = 'Editar y notificar', // editar y emite el evento con la data
+    CREATE = 'Crear', // crea el horario y hace la petición a la API
+    CREATE_AND_EMIT = 'Crear y notificar' // crea el horario y emite el evento con la data
+}
+
+export interface onChangeSchedule { 
+    beca: BecaTrabajoByUbication,
+    schedule: Array<AddSchedule>
+    action: Actions
+}
+
+export interface Hours {
     start: string,
     end: string
-
+    valid: boolean
 }
-interface AddSchedule {
+export interface AddSchedule {
     day: string,
     hours: Array<Hours>
 }
@@ -26,7 +41,7 @@ interface AddSchedule {
         DropdownModule,
         ButtonModule,
         TooltipModule,
-        FormsModule
+        FormsModule,
     ],
     template: `
     
@@ -38,7 +53,8 @@ interface AddSchedule {
                     [options]="becas"
                     optionLabel="fullName" 
                     inputId="beca"
-                    placeholder="Beca" />
+                    placeholder="Beca"
+                    [(ngModel)]="beca" />
             </div>
 
             <!-- dias de la semana -->
@@ -130,6 +146,11 @@ export class AddScheduleComponent implements OnInit, ModalSchedule {
     @Output() onCancel: EventEmitter<boolean> = new EventEmitter();
 
     /**
+     * Emite un evento  si el action es agregar o editar y emitir
+     */
+    @Output() onChange: EventEmitter<onChangeSchedule> = new EventEmitter();
+
+    /**
      * Horas cubiertas por el beca
      */
     @Input() coveredHours: any
@@ -138,6 +159,11 @@ export class AddScheduleComponent implements OnInit, ModalSchedule {
      * Beca seleccionada
      */
     @Input() beca:BecaTrabajoByUbication | undefined
+
+    /**
+     * Accion a realizar: Agregar o editar, por defecto es agregar
+     */
+    @Input() action: Actions = Actions.ADD
 
     /**
      * Lista de becas
@@ -149,6 +175,9 @@ export class AddScheduleComponent implements OnInit, ModalSchedule {
      */
     selectedDay = 'Lunes';
 
+    /**
+     * Controla el horario de la beca
+     */
     schedule: AddSchedule[]  = []
     
     ngOnInit(): void { 
@@ -190,7 +219,8 @@ export class AddScheduleComponent implements OnInit, ModalSchedule {
                 hours: [
                     {
                         start: this.getAvailableHours()[0],
-                        end: this.getAvailableHours()[1]
+                        end: this.getAvailableHours()[1],
+                        valid: true
                     }
                 ]
             }
@@ -280,14 +310,16 @@ export class AddScheduleComponent implements OnInit, ModalSchedule {
                     const nextHours = this.nextHours(schedule.hours[schedule.hours.length - 1].end)
                     schedule.hours.push({
                         start: nextHours[0],
-                        end: nextHours[1]
+                        end: nextHours[1],
+                        valid: true
                     })
                 } 
 
                 if(schedule.hours.length === 0){
                     schedule.hours.push({
                         start: this.getAvailableHours()[0],
-                        end: this.getAvailableHours()[1]
+                        end: this.getAvailableHours()[1],
+                        valid: true
                     })
                 }
             }
@@ -310,6 +342,10 @@ export class AddScheduleComponent implements OnInit, ModalSchedule {
         return [ this.getAvailableHours()[nextHourIndex], this.getAvailableHours()[nextHourIndex + 1] ]
     }
 
+    /**
+     * Funcion para eliminar una hora del horario
+     * @param hour hora a eliminar
+     */
     removeHour(hour: Hours){
         this.schedule = this.schedule.map(schedule => {
             if(schedule.day.toLowerCase() === this.selectedDay.toLowerCase()){
@@ -319,8 +355,48 @@ export class AddScheduleComponent implements OnInit, ModalSchedule {
         })
     }
 
+    /**
+     * Funcion para enviar el horario a la API y seleccionar el beca
+     */
     sendSchedule(){
-        console.log(this.schedule);     
+        const data: onChangeSchedule = {
+            beca: {...this.beca},
+            schedule: [...this.schedule],
+            action: this.action
+        }  
+        
+        this.takeAction(data)
+    }
+
+    /**
+     * Funcion para realizar la accion seleccionada
+     * @param data Información a procesar
+     * @returns 
+     */
+    private takeAction( data: onChangeSchedule){
+
+        // hacer la petición a la API
+        if(this.action === Actions.CREATE_AND_EMIT){
+            // emitir el evento con la data
+            this.onChange.emit({...data})
+            return 
+        }
+
+        if(this.action === Actions.CREATE ) {
+            // hacer la petición a la API
+            return
+        }
+
+        if(this.action === Actions.ADD || this.action === Actions.EDIT){
+            const url = this.action === Actions.ADD ? 'add' : 'edit'
+            return
+        }
+
+        if(this.action === Actions.ADD_AND_EMIT || this.action === Actions.EDIT_AND_EMIT){
+            // emitir el evento con la data
+            this.onChange.emit({...data})
+            return
+        }
     }
 
 }

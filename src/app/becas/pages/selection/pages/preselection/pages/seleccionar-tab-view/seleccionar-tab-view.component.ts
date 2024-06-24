@@ -1,8 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject, signal } from '@angular/core';
 import { PreselectionTableByUbicationComponent } from '../../../../components/preselection-table-by-ubication/preselection-table-by-ubication.component';
-import { ListboxChangeEvent, ListboxClickEvent, ListboxModule } from 'primeng/listbox';
-import { SelectItemGroup } from 'primeng/api';
+import { ListboxChangeEvent, ListboxModule } from 'primeng/listbox';
 import { FormsModule } from '@angular/forms';
 import { UbicationService } from 'src/app/becas/pages/ubication/pages/services/ubication.service';
 import { BecaTrabajoByUbication } from 'src/app/shared/api';
@@ -11,11 +10,14 @@ import { UbicationName } from 'src/app/becas/pages/ubication/api';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { ConfirmationService, MessageService  } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { PreselectionService } from '../../services/preselection.service';
 import { DialogModule } from 'primeng/dialog';
-import { AddScheduleComponent } from 'src/app/becas/pages/beca-list/components/add-schedule/add-schedule.component';
+import { AddScheduleComponent, Actions, onChangeSchedule, AddSchedule } from 'src/app/becas/pages/beca-list/components/add-schedule/add-schedule.component';
+import { environment } from 'src/environments/environment';
+import { totalHours } from 'src/app/becas/pages/beca-list/utils';
+import { ConfirmScheduleTableComponent } from '../../../../components';
 
 interface SelectedBeca {
     error: boolean;
@@ -38,6 +40,7 @@ interface SelectedBeca {
         ToastModule,
         DialogModule,
         AddScheduleComponent,
+        ConfirmScheduleTableComponent,
         PreselectionTableByUbicationComponent,
     ],
     template: `
@@ -132,7 +135,8 @@ interface SelectedBeca {
                 [draggable]="false"
                 [resizable]="false"
                 position="top"
-                [modal]="true"> 
+                [modal]="true"
+                [closeOnEscape]="false"> 
                 
                 
                 @if (selectedBeca().loading) {
@@ -140,17 +144,38 @@ interface SelectedBeca {
                 }
 
                 @if (!selectedBeca().error && !selectedBeca().loading) {
-                    <app-add-schedule [beca]="selectedBeca().beca" [coveredHours]="selectedBeca().data" ></app-add-schedule>
+                    <app-add-schedule 
+                        [beca]="selectedBeca().beca" 
+                        [coveredHours]="selectedBeca().data" 
+                        [action]="ActionsA.CREATE_AND_EMIT"
+                        (onChange)="sendData($event)"  />
                 }
                 
                 
                 
                 <ng-template pTemplate="footer">
                     <div class="w-full flex justify-content-start">
-                        <p-button label="Ver horario" [styleClass]="'mr-2'" (onClick)="openScheduleModal = false" />
+                        <p-button label="Ver horario" [styleClass]="'mr-2'" (onClick)="openScheduleFile()" />
                     </div>
                 </ng-template>
                 
+            </p-dialog>
+        }
+
+        @if (confirmScheduleDialogData().show) {
+            <p-dialog 
+                header="Confirmar horario" 
+                [(visible)]="confirmScheduleDialogData().show" 
+                [style]="{width: '90%'}"
+                [draggable]="false"
+                [resizable]="false"
+                position="top"
+                [modal]="true"> 
+                
+                <app-confirm-schedule-table [becas]="confirmScheduleDialogData().data" />
+                <ng-template pTemplate="footer">
+                    <p-button label="Confirmar horario" [styleClass]="'mr-2'" (onClick)="saveSchedule()" />
+                </ng-template>
             </p-dialog>
         }
 
@@ -219,15 +244,28 @@ export class SeleccionarTabViewComponent implements OnInit {
      */
     openScheduleModal: boolean = false;
 
-
+    /**
+     * Senal para mostrar la información de la beca seleccionada y su horario para ser enviado al componente add-schedule
+     */
     selectedBeca = signal<SelectedBeca>({ error: false, loading: false, beca: {} as BecaTrabajoByUbication, data: {} })
 
+    /**
+     * Bandera para mostrar el modal de confirmación de horario
+     */
+    confirmScheduleDialogData = signal({
+        show: false,
+        data: []
+    })
 
 
     ngOnInit(): void {
         this.getUbications();
         this.getNotifiedBecas();
-     }
+    }
+
+    get ActionsA (){
+        return Actions
+    }
 
 
     /**
@@ -376,6 +414,74 @@ export class SeleccionarTabViewComponent implements OnInit {
             }
         })
 
+    }
+
+    /**
+     * Abre el horario del beca en una nueva ventana
+     */
+    openScheduleFile(){
+        const {code} = this.selectedBeca().beca
+        window.open(`${environment.mediaUrl}becas-trabajo/${code}/horario/${code}.pdf`, '_blank')
+    }
+
+    sendData(event: onChangeSchedule){
+        const { action, beca, schedule} = event
+
+        if(action === Actions.CREATE_AND_EMIT){
+
+            // // validamos que se cumplan las horas minimas  
+            const minHours = totalHours(schedule)
+
+            // mostramos otro modal para confirmar el envio de los datos
+            this.confirmScheduleDialogData.set({
+                show: true,
+                data: [
+                    {
+                        beca,
+                        schedule: schedule.map( ({ hours }) => hours),
+                        originalSchedule: schedule,
+                        totalHours: minHours
+                    }
+                ]
+            })
+
+        }
+
+    }
+
+
+    saveSchedule(){
+
+        const {beca, totalHours, originalSchedule} = this.confirmScheduleDialogData().data[0]
+
+        if(totalHours < 10) {
+            this.messageService.add({severity:'error', summary: 'No cumple las horas minimas', detail: 'El horario debe tener al menos 10 horas de trabajo'});
+            return
+        }
+
+        const data = {
+            becaId: Number(beca.code),
+            schedule: originalSchedule,
+            ubicationId: beca.ubication.id
+        }
+        
+        this.preselectionService.selectBeca(data).subscribe({
+            next: (res: any) => {
+                // quitamos al beca de la lista de notificados
+                this.notifiedBecas = this.notifiedBecas.filter((beca: BecaTrabajoByUbication) => beca.code != this.selectedBeca().beca.code)
+                // cerramos los modales 
+                this.confirmScheduleDialogData.set( { show: false, data: [] })
+                this.openScheduleModal = false
+                this.messageService.add({severity:'success', summary: 'Becas seleccionado', detail: res.msg});
+
+            },
+            error: (err: any) => {
+                console.log(err);
+                
+                this.messageService.add({severity:'error', summary: 'Error', detail: 'Ocurrio un error al guardar el horario'});
+            }
+        })
+        
     }
 
 
