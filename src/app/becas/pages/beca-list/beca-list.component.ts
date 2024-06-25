@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, type OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, type OnInit } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
-import { DropdownModule } from 'primeng/dropdown';
+import { DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
@@ -9,6 +9,26 @@ import { TableModule } from 'primeng/table';
 import { DialogModule } from 'primeng/dialog';
 import { ExtraTimeComponent } from './components/extra-time/extra-time.component';
 import { AddScheduleComponent } from './components/add-schedule/add-schedule.component';
+import { BecaScheduleListComponent } from './components';
+import { BecaService } from './service';
+import { BecaTrabajo } from './api';
+import { UbicationName, UbicationService } from '../ubication';
+import { tap } from 'rxjs';
+import { SkeletonModule } from 'primeng/skeleton';
+import { FormsModule } from '@angular/forms';
+
+
+type becaState = {
+    loading: boolean,
+    error: boolean,
+    data: BecaTrabajo[] | null | undefined
+}
+
+type ubicationsState = {
+    loading: boolean,
+    error: boolean,
+    data: UbicationName[] | null | undefined
+}
 
 @Component({
     selector: 'app-beca-list',
@@ -20,10 +40,12 @@ import { AddScheduleComponent } from './components/add-schedule/add-schedule.com
         InputTextModule,
         InputGroupModule,
         InputGroupAddonModule,
-        TableModule,
         DialogModule,
+        FormsModule,
         ExtraTimeComponent,
-        AddScheduleComponent
+        AddScheduleComponent,
+        BecaScheduleListComponent,
+        SkeletonModule
     ],
     template: `
     
@@ -38,23 +60,49 @@ import { AddScheduleComponent } from './components/add-schedule/add-schedule.com
         <section class="flex justify-content-between mb-5">
             <!-- Input de filtro -->
             <div>
-            <p-inputGroup>
-                <p-inputGroupAddon>
-                    <i class="pi pi-search"></i>
-                </p-inputGroupAddon>
-                <input pInputText placeholder="Nombre, codigo, ubicacion" class="w-23rem" />
-            </p-inputGroup>
+                @if (becaState().loading) {
+                    <p-skeleton width="500px" height="40px" />
+                } 
+                @if(becaState().data) {
+                    <p-inputGroup>
+                        <p-inputGroupAddon>
+                            <i class="pi pi-search"></i>
+                        </p-inputGroupAddon>
+                        <input 
+                            pInputText 
+                            placeholder="Nombre, codigo, ubicacion" 
+                            class="w-23rem"
+                            [(ngModel)]="action" />
+                    </p-inputGroup>
+                }
             </div>
             <!-- acciones -->
             <div class="flex gap-3">
-                <p-button label="Tiempo extra" 
-                    icon="pi pi-clock"
-                    (onClick)="openExtraTimeDialog = true"/>
-                <p-button label="Agregar" 
-                    icon="pi pi-plus"
-                    (onClick)="openNewSchedule = true"/>
+
                 
-                <p-dropdown [options]="[{label: 'Opcion 1', value: 'Opcion 1'}]" [styleClass]="'w-13rem'" />
+                @if (ubicationsState().loading) {
+                    <p-skeleton width="500px" height="40px" />
+                } 
+
+                @if(ubicationsState().data) {
+                    <p-button 
+                        label="Tiempo extra" 
+                        icon="pi pi-clock"
+                        (onClick)="openExtraTimeDialog = true"/>
+                    
+                    <!-- <p-button 
+                        label="Agregar" 
+                        icon="pi pi-plus"
+                        (onClick)="openNewSchedule = true"/> -->
+
+                    <p-dropdown 
+                        [options]="ubicationsState().data" 
+                        optionLabel="name" 
+                        [styleClass]="'w-13rem'"
+                        [showClear]="true"
+                        placeholder="Filtrar por ubicacion"
+                        (onChange)="setActionFromDropDown($event)" />
+                }
             </div>
         </section>
 
@@ -62,52 +110,18 @@ import { AddScheduleComponent } from './components/add-schedule/add-schedule.com
 
         <section class="bg-white p-2">
 
-            <p-table 
-                [value]="becas"
-                styleClass="p-datatable-striped p-datatable-gridlines"
-                [tableStyle]="{ 'min-width': '50rem' }" > 
+            @if (becaState().loading) {
+                <span>cargando...</span>
+                <p-skeleton width="100%" height="150px" />
+            }
 
-                <ng-template pTemplate="header">
-                    <tr>
-                        @for (col of columns; track $index) {
-                            <th style="text-align: center;">{{ col }}</th>
-                        }
-                    </tr>
-                </ng-template>
-                <ng-template pTemplate="body" let-beca>
-                    <tr >
-                        <td style="width: 250px; text-align: center;" class="bg-blue-900 text-white"> 
-                            <span class="text-xl">{{beca.name}} </span>
-                        </td>
-                        
-                        @for (schedule of getSchedules(beca); track $index) {
-                            <td style="width: 250px; text-align: center;">
-                                @if (schedule.length > 0) {
-                                    <ul class="list-none p-0">
-                                        @for (hour of schedule; track $index) {
-                                            <li class="mb-2 p-2 bg-gray-100 text-center font-bold">
-                                                {{hour.inicio}} - {{hour.fin}}
-                                            </li>
-                                        }
-                                    </ul>
-                                } @else { 
-                                    <span > . </span>
-                                }
-                            </td>
-                        }
+            @if (becaState().error) {
+                <span>Ha ocurrido un error inesperado :( </span>
+            }
 
-                        <td style="width: 250px; text-align: center;">
-                            <span class="block w-full text-center">{{beca.total}}</span>
-                        </td>
-                        
-                    </tr>
-                </ng-template>
-
-            </p-table>
-
-
-
-
+            @if (becaState().data) {
+                <app-beca-schedule-list [becas]="becaState().data" [action]="action" />
+            }
         </section>
 
         @if (openExtraTimeDialog) {
@@ -123,7 +137,7 @@ import { AddScheduleComponent } from './components/add-schedule/add-schedule.com
             </p-dialog>
         }
 
-        @if (openNewSchedule) {
+        <!-- @if (openNewSchedule) {
             <p-dialog  
                 header="Agregar horario" 
                 [(visible)]="openNewSchedule" 
@@ -134,7 +148,7 @@ import { AddScheduleComponent } from './components/add-schedule/add-schedule.com
                 position="top">
                 <app-add-schedule (onCancel)="openNewSchedule = $event" />
             </p-dialog>
-        }
+        } -->
 
 
     </main>
@@ -145,74 +159,97 @@ import { AddScheduleComponent } from './components/add-schedule/add-schedule.com
 })
 export class BecaListComponent implements OnInit {
 
+    /**
+     * @description Flag to open the dialog to add extra time
+     */
     openExtraTimeDialog = false;
+
+    /**
+     * @description Flag to open the dialog to add a new schedule
+     */
     openNewSchedule = false;
 
-    ngOnInit(): void { }
+    /**
+     * @description Service to do all the request to the backend
+     */
+    becaService = inject(BecaService)
 
-    get columns (){
-        return [
-            'Beca',
-            'Lunes',
-            'Martes',
-            'Miercoles',
-            'Jueves',
-            'Viernes',
-            'Sabado',
-            'Total Horas',
-        ]
+    /**
+     * @description Service to do all the request to the backend
+     */
+    ubicationService = inject(UbicationService)
+
+    /**
+     * @description State of the becas
+     */
+    becaState = signal<becaState>({
+        loading: false,
+        error: false,
+        data: null
+    })
+
+    /**
+     * @description State of the ubications
+     */
+    ubicationsState = signal<ubicationsState>({
+        loading: false,
+        error: false,
+        data: null
+    })
+
+    /**
+     * @description Action to filter the becas
+    */
+    action: any
+
+    ngOnInit(): void { 
+        this.loadBecas()
+        this.loadUbications()
     }
 
-    get becas(){
-        return [
-            {
-                "name": "Angel Garcia",
-                "lunes": [
-                    {
-                        "inicio": "12:00 am",
-                        "fin": "1:00 pm"
-                    },
-                    {
-                        "inicio": "6:00 am",
-                        "fin": "8:00 am"
-                    }
-                ],
-                "martes": [
-                    {
-                        "inicio": "8:30 pm",
-                        "fin": "9:30 am"
-                    },
-                    {
-                        "inicio": "8:00 am",
-                        "fin": "11:00 pm"
-                    }
-                ],
-                "miercoles": [
-                    {
-                        "inicio": "1:00 am",
-                        "fin": "2:00 pm"
-                    },
-                    {
-                        "inicio": "3:00 am",
-                        "fin": "6:00 pm"
-                    }
-                ],
-                "jueves": [],
-                "viernes": [],
-                "sabado": [],
-                "total": 0
+    /**
+     * @description Load the becas from the backend
+     */
+    loadBecas() {
+        this.becaState.update(state => ({...state, loading: true}))
+
+        this.becaService.getBecaList().subscribe({
+            next: beca => {
+                this.becaState.set({loading: false, error: false, data: [...beca]})
+            },
+            error: err => {
+                this.becaState.set({loading: false, error: true, data: null})
             }
-        ]
+        })
     }
 
-    getSchedules(beca: any){
-        return [
-            beca.lunes,
-            beca.martes,
-            beca.miercoles,
-            beca.jueves,
-            beca.viernes,
-            beca.sabado
-        ]
+    /**
+     * @description Load the ubications from the backend
+     */
+    loadUbications() {
+        this.ubicationsState.update(state => ({...state, loading: true}))
+
+        this.ubicationService.getUbicationsListNames().subscribe({
+            next: ubications => {
+                this.ubicationsState.set({loading: false, error: false, data: [...ubications]})
+            },
+            error: err => {
+                this.ubicationsState.set({loading: false, error: true, data: null})
+            }
+        })
     }
+
+    setActionFromDropDown(event: DropdownChangeEvent){
+        const {value} = event
+        
+        if(value) {
+            this.action = value.name
+        } else {
+            this.action = undefined
+        }
+        
+    }
+
+
+
 }
