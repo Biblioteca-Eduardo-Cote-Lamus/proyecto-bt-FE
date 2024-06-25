@@ -44,7 +44,7 @@ interface SelectedBeca {
         PreselectionTableByUbicationComponent,
     ],
     template: `
-        <div class="grid">
+        <div class="grid mb-4">
             <section class="col-12 md:col-3 ">
                 @if (!ubications) {
                     <p-skeleton styleClass="mb-2" height="50px" />
@@ -112,7 +112,12 @@ interface SelectedBeca {
             </section>
 
             <section class="col-12 md:col-9">
-                <p-button label="Notificar" [styleClass]="'mb-3'"  (onClick)=" notifyBecasPopup()" />
+                <div class="mb-3 flex justify-content-between">
+                    <p-button label="Notificar" [styleClass]="''"  (onClick)=" notifyBecasPopup()" />
+                    <p-button 
+                        label='Finalizar proceso' />
+
+                </div>
                 @if (!notifiedBecas) {
                     <p-skeleton styleClass="mb-2" height="50px" />
                 }@else {
@@ -126,6 +131,7 @@ interface SelectedBeca {
                 }
             </section>
         </div>    
+        
 
         @if (openScheduleModal) {
             <p-dialog 
@@ -148,7 +154,8 @@ interface SelectedBeca {
                         [beca]="selectedBeca().beca" 
                         [coveredHours]="selectedBeca().data" 
                         [action]="ActionsA.CREATE_AND_EMIT"
-                        (onChange)="sendData($event)"  />
+                        (onChange)="sendData($event)"
+                        [ubications]="ubications"  />
                 }
                 
                 
@@ -429,7 +436,6 @@ export class SeleccionarTabViewComponent implements OnInit {
 
         if(action === Actions.CREATE_AND_EMIT){
 
-            // // validamos que se cumplan las horas minimas  
             const minHours = totalHours(schedule)
 
             // mostramos otro modal para confirmar el envio de los datos
@@ -437,9 +443,9 @@ export class SeleccionarTabViewComponent implements OnInit {
                 show: true,
                 data: [
                     {
-                        beca,
+                        beca: {...beca},
                         schedule: schedule.map( ({ hours }) => hours),
-                        originalSchedule: schedule,
+                        originalSchedule: [...schedule],
                         totalHours: minHours
                     }
                 ]
@@ -462,7 +468,7 @@ export class SeleccionarTabViewComponent implements OnInit {
         const data = {
             becaId: Number(beca.code),
             schedule: originalSchedule,
-            ubicationId: beca.ubication.id
+            ubicationId: Number(beca.ubication.id)
         }
         
         this.preselectionService.selectBeca(data).subscribe({

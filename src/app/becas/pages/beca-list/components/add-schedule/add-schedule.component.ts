@@ -7,6 +7,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { FormsModule } from '@angular/forms';
 import { BecaTrabajoByUbication } from 'src/app/shared/api';
 import { transformSchedule } from '../../utils';
+import { UbicationName } from '../../../ubication';
 
 export enum Actions{
     ADD = 'Agregar', // agregar y hace la petición a la API
@@ -56,6 +57,18 @@ export interface AddSchedule {
                     placeholder="Beca"
                     [(ngModel)]="beca" />
             </div>
+
+            @if (showUbicationDropdown) {
+                <div class="p-fluid mb-4">
+                    <label for="ubication" class="inline-block mb-2">Seleccione una ubicación</label>
+                    <p-dropdown 
+                        [options]="ubications"
+                        optionLabel="name" 
+                        inputId="ubication"
+                        placeholder="Ubicación"
+                        [(ngModel)]="ubication" />
+                </div>
+            }
 
             <!-- dias de la semana -->
             <div class="mb-4">
@@ -166,6 +179,16 @@ export class AddScheduleComponent implements OnInit, ModalSchedule {
     @Input() action: Actions = Actions.ADD
 
     /**
+     * Lista de ubicaciones
+     */
+    @Input() ubications: UbicationName[] = []
+
+    /**
+     * Ubicacion seleccionada
+     */
+    ubication: UbicationName | undefined
+
+    /**
      * Lista de becas
      */
     becas: BecaTrabajoByUbication[] = []
@@ -191,7 +214,7 @@ export class AddScheduleComponent implements OnInit, ModalSchedule {
     ngOnChanges(changes: SimpleChanges): void {
         //Called before any other lifecycle hook. Use it to inject dependencies, but avoid any serious work here.
         //Add '${implements OnChanges}' to the class.
-        const { coveredHours, beca } = changes
+        const { coveredHours, beca, ubications } = changes
 
         
         if(!beca || !coveredHours){
@@ -204,6 +227,10 @@ export class AddScheduleComponent implements OnInit, ModalSchedule {
 
         if(coveredHours && coveredHours.currentValue){
             this.schedule = transformSchedule(coveredHours.currentValue)  
+        }
+
+        if(ubications && ubications.currentValue){
+            this.ubication = ubications.currentValue.filter(ubication => ubication.id === beca.currentValue?.ubication?.id)[0]
         }
         
     }
@@ -360,7 +387,7 @@ export class AddScheduleComponent implements OnInit, ModalSchedule {
      */
     sendSchedule(){
         const data: onChangeSchedule = {
-            beca: {...this.beca},
+            beca: {...this.beca, ubication: {...this.ubication}},
             schedule: [...this.schedule],
             action: this.action
         }  
@@ -397,6 +424,18 @@ export class AddScheduleComponent implements OnInit, ModalSchedule {
             this.onChange.emit({...data})
             return
         }
+    }
+
+    /**
+     * Funcion que determina si se debe mostrar el dropdown de ubicaciones
+     * @returns Booleano que indica si se debe mostrar el dropdown de ubicaciones
+     */
+    get showUbicationDropdown () {
+        return this.ubications.length > 0 && (this.action === Actions.CREATE || this.action === Actions.CREATE_AND_EMIT)
+    }
+
+    get disabledSendButton(){
+        return this.beca === undefined || this.ubication === undefined
     }
 
 }
