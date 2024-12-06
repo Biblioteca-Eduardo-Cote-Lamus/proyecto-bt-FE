@@ -63,7 +63,7 @@ import { TypeSchedulePipe } from '../../pipes/typeSchedule.pipe';
                                   {{ ubication[col].name }}
                                 } 
                                 @else if (col.includes('schedule')) {
-                                  {{ ubication[col]| typeSchedule }}
+                                  {{ ubication[col].scheduleType | typeSchedule }}
                                 } @else {
                                   {{ ubication[col] }}
                                 }

@@ -1,16 +1,24 @@
 import { NgClass } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
 import { TableModule } from 'primeng/table';
+import { BecaTrabajoByUbication } from 'src/app/shared/api';
+import { ChipModule } from 'primeng/chip';
+import { AvatarModule } from 'primeng/avatar';
+import { TagModule } from "primeng/tag";
+import { ButtonModule } from 'primeng/button';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
     selector: 'table-by-ubication',
     standalone: true,
-    imports: [TableModule, NgClass],
+    imports: [TableModule, ChipModule ,AvatarModule, TagModule, ButtonModule, TooltipModule,NgClass],
     template: `
         <p-table
             [value]="list"
             [tableStyle]="{ 'min-width': '50rem' }"
-            [columns]="['Codigo', 'Nombre', 'Edad', 'Carrera', 'Correo','Direccion']"
+            [columns]="['Codigo', 'Nombre', 'Correo', 'Carrera', 'Direccion', 'Genero', 'Estado']"
+            selectionMode="single"
+            (onRowSelect)="onRowSelect($event)" 
             [paginator]="true"
             [rows]="10"
             [rowsPerPageOptions]="[10, 20, 30]"
@@ -26,21 +34,61 @@ import { TableModule } from 'primeng/table';
                 <tr>
                     @for (col of columns; track $index) {
                       <th [pSortableColumn]="col.toLowerCase()" >
-                      {{col}}
-                      <p-sortIcon [field]="col.toLowerCase()"></p-sortIcon>
-                    </th>
+                        {{col}}
+                        <p-sortIcon [field]="col.toLowerCase()"></p-sortIcon>
+                      </th>
+                    }
+                    @if (dismissBecaButtonFlag) {
+                      <th>Acciones</th>
                     }
                 </tr>
             </ng-template>
-            <ng-template pTemplate="body" let-beca let-columns="columns">
-                <tr>
-                    @for (col of columns; track $index) {
-                      <td [ngClass]="{'flex align-items-center justify-content-center gap-3': col == 'Nombre'}">
-                        @if (col === 'Nombre') {
-                          <img src="assets/shared/no-user.svg" alt="imagen del usuario" class="w-3rem h-3rem">
-                        }
+            <ng-template pTemplate="body" let-beca >
+                <tr [pSelectableRow]="beca">
+                  <td  >{{ beca.code }}</td>
 
-                        {{beca[col.toLowerCase()]}}
+                  <td   class="flex align-items-center">
+                      <p-avatar 
+                        [image]="beca.photo" 
+                        styleClass="mr-2 border-1" 
+                        size="large" 
+                        shape="circle" />
+                    <span class="ml-1">
+                        {{ beca.fullName}}
+                    </span>
+                  </td>
+
+                  <td>{{ beca.email }}</td>
+                  <td>{{ beca.career }}</td>
+                  <td>{{ beca.address }}</td>
+                  <td>{{ beca.gender }}</td>
+
+                  <td >
+                      <p-tag icon="pi {{ beca['status'] == 'Candidate' ? 'pi-info-circle' : 'pi-check'  }}" 
+                             severity="{{ beca['status'] == 'Candidate' ? 'warning' : 'success'  }}" [value]="beca.status" />
+                  </td>
+
+
+                    @if (dismissBecaButtonFlag) {
+                      <td>
+                        <div class="flex gap-2">
+                          <p-button 
+                            icon="pi pi-check" 
+                            [rounded]="true" 
+                            [text]="true" 
+                            severity="success"
+                            pTooltip="seleccionar"
+                            tooltipPosition="top"
+                            (onClick)="onAcceptBeca.emit(beca)" />
+                          <p-button 
+                            icon="pi pi-times" 
+                            [rounded]="true" 
+                            [text]="true" 
+                            severity="danger"
+                            pTooltip="Descartar"
+                            tooltipPosition="top"
+                            (onClick)="onDismissBeca.emit(beca)" />
+                        </div>
                       </td>
                     }
                 </tr>
@@ -55,7 +103,50 @@ import { TableModule } from 'primeng/table';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PreselectionTableByUbicationComponent {
-    @Input() list: any = [];
 
+    /**
+     * Lista de becas por ubicacion
+     */
+    @Input() list: BecaTrabajoByUbication[] = [];
 
+    /**
+     * Evento para notificar cuando un beca es seleccionado
+     */
+    @Output() onSelectBeca = new EventEmitter<BecaTrabajoByUbication>();
+
+    /**
+     * Columnas de la tabla a mostrar. Se calculan a partir de un objeto de la lista
+     */
+    columns = [];
+
+    /**
+     * Bandera para mostrar el boton de descartar beca. Por defecto es falso.
+     * Importante: Activar esta bandera solo si se quiere mostrar el boton de descartar beca
+     */
+    @Input() dismissBecaButtonFlag = false;
+
+    /**
+     * Evento para emitir el beca que se va a descartar. 
+     */
+    @Output() onDismissBeca = new EventEmitter<BecaTrabajoByUbication>()
+
+    /**
+     * Evento para emitir el beca que se va a aceptar. 
+     */
+    @Output() onAcceptBeca = new EventEmitter<BecaTrabajoByUbication>()
+
+    constructor() { }
+
+    ngOnChanges(changes: SimpleChanges): void {
+      const {currentValue } = changes['list']
+
+      if(currentValue && currentValue.length > 0){
+        this.columns = Object.keys(currentValue[0]).slice(0, -2)  
+      }
+    }
+
+    onRowSelect(event: any) {
+        const {data} = event
+        this.onSelectBeca.emit(data)
+    }
 }
